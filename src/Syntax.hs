@@ -18,24 +18,21 @@ module Syntax (
     import Control.Lens
 
     data SyntaxType =
-          SyntaxAtom
+          SyntaxFile
+        | SyntaxAtom
         | SyntaxExpression
         | SyntaxFunction
-        | SyntaxLambda
-        | SyntaxIfThenElse
         | SyntaxImport
         | SyntaxExport
-        | SyntaxBody
         | SyntaxList
-        | SyntaxTuple
         deriving (Show, Eq, Generic, Typeable)
 
+
     data SyntaxNode = SyntaxNode {
-          _SNType     :: SyntaxType
-        , _SNTokens   :: [Token]
-        , _SNIndex    :: Int
-        , _SNChildren :: [SyntaxNode]
-        , _SNScope    :: L.ByteString
+          _syntaxNodeId       :: L.ByteString
+        , _syntaxNodeType     :: SyntaxType
+        , _syntaxNodeTokens   :: [Token]
+        , _syntaxNodeChildren :: [SyntaxNode]
         } deriving (Show, Eq, Generic, Typeable)
 
     makeLenses ''SyntaxNode

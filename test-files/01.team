@@ -23,6 +23,7 @@ multiline strings")
 
 (lens some a: 0)
 
+(let a String "TEST")
 
 {getProp
     (Prop String)

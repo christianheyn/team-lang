@@ -12,7 +12,6 @@ module Tokenizer (
     , _isType
     , _isSymbol
     , _isProp
-    , _isOperator
     , _isOpenSquareBracket
     , _isClosingSquareBracket
     , _isOpenCurlyBracket
@@ -81,9 +80,6 @@ module Tokenizer (
     _isType "" = False
     _isType x  = _noNewlineStart x && matchRegex "^([A-Z]{1})([0-9A-za-z_]*)$" x
 
-    _isOperator :: L.ByteString -> Bool
-    _isOperator "" = False
-    _isOperator x  = _noNewlineStart x && matchRegex "^([\\_\\=\\~\\&\\<\\>\\:\\.\\?\\!\\|\\\\\\/\\+\\*\\-]+)$" x
 
     _isOpenSquareBracket :: L.ByteString -> Bool
     _isOpenSquareBracket "[" = True
@@ -164,12 +160,19 @@ module Tokenizer (
         | T_Export
         | T_Import
         | T_ImportAs
+        | T_Let
+        | T_Lets
+        | T_TypeKeyword
+        | T_TypesKeyword
         | T_If
         | T_Catch
+        | T_Alias
+        | T_TEST
+        | T_Parallel
+        | T_Concurrent
         | T_FlagKeyword
         | T_FunctionAdditionKeyword
         | T_ModuleStrucKeyword
-        | T_DeclarationKeyword
         | T_BooleanConst
         | T_Unknowen
         deriving (Show, Eq, Generic, Typeable)
@@ -206,8 +209,6 @@ module Tokenizer (
 
         , (_isString,               T_String)
         , (_isUnresolvedString,     T_String)
-
-        , (_isOperator,             T_Operator)
 
         , (_isComment,              T_Comment)
         , (_isSemicolon,            T_Semicolon)
@@ -247,27 +248,10 @@ module Tokenizer (
         , "framework"
         , "util"
         , "config"
-        , "test"
         , "prototype"
         , "research"
-        , "toBeDefined"
+        , "tbd"
         , "deprecated"
-        ]
-
-    _controlStrucKeywords_ = [
-          "if"
-        ]
-
-    _declarationKeywords_ = [
-          "data"
-        , "json"
-        , "lens"
-        , "interface"
-        , "enum"
-        , "alias"
-        , "type"
-        , "default"
-        -- , "class" -- ?
         ]
 
     data Token = Token {
@@ -286,11 +270,18 @@ module Tokenizer (
     additionalPredicateToType = [
               ((== "if"), T_If)
             , ((`elem` _optionalFlagKeywords_), T_FlagKeyword)
+            , ((== "let"), T_Let)
+            , ((== "lets"), T_Lets)
+            , ((== "type"), T_TypeKeyword)
+            , ((== "types"), T_TypesKeyword)
+            , ((== "test"), T_TEST)
             , ((== "export"), T_Export)
             , ((== "import"), T_Import)
             , ((== "importAs"), T_ImportAs)
             , ((== "catch"), T_Catch)
-            , ((`elem` _declarationKeywords_), T_DeclarationKeyword)
+            , ((== "alias"), T_Alias)
+            , ((== "parallel"), T_Parallel)
+            , ((== "concurrent"), T_Concurrent)
             , ((`elem` ["true", "false"]), T_BooleanConst)
             ]
             ++ predicateToType
