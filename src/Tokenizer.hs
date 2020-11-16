@@ -11,6 +11,7 @@ module Tokenizer (
     , _isUnresolvedNumber
     , _isType
     , _isSymbol
+    , _isProp
     , _isOperator
     , _isOpenSquareBracket
     , _isClosingSquareBracket
@@ -69,7 +70,7 @@ module Tokenizer (
     _isNumber "0" = True
     _isNumber "1" = True
     _isNumber x   = _noNewlineStart x && _noSenslessZero_ x && match x
-        where match = matchRegex "(^(\\-?)([0-9]{1,})(\\.{1}([0-9]{1,})){0,1}$)|(^(\\-?)([1-9]{1,})(\\/){1}[0-9]{1,}$)"
+        where match = matchRegex "(^(\\-?)([0-9]{1,})(\\.{1}([0-9]{1,})){0,1}$)|(^(\\-?)([1-9]{1}[0-9]*)(\\/){1}([1-9]{1}[0-9]*)$)"
 
     _isUnresolvedNumber :: L.ByteString -> Bool
     _isUnresolvedNumber "" = False
@@ -160,8 +161,12 @@ module Tokenizer (
         | T_Semicolon
 
         -- step 2
-        | T_ControlStrucKeyword
-        | T_FunctionFlagKeyword
+        | T_Export
+        | T_Import
+        | T_ImportAs
+        | T_If
+        | T_Catch
+        | T_FlagKeyword
         | T_FunctionAdditionKeyword
         | T_ModuleStrucKeyword
         | T_DeclarationKeyword
@@ -208,6 +213,7 @@ module Tokenizer (
         , (_isSemicolon,            T_Semicolon)
         ]
 
+
     _combineToken_ ::
            L.ByteString
         -> [L.ByteString]
@@ -230,8 +236,7 @@ module Tokenizer (
     tokenize :: L.ByteString -> [L.ByteString]
     tokenize src = _combineToken_ src [""]
 
-
-    _optionalFunctionFlagsKeywords_ = [
+    _optionalFlagKeywords_ = [
           "feature"
         , "function"
         , "project"
@@ -249,24 +254,8 @@ module Tokenizer (
         , "deprecated"
         ]
 
-    _optionalFunctionAdditionKeywords_ = [
-          "undefined"
-        , "where"
-        , "meta"
-        , "catch"
-        ]
-
     _controlStrucKeywords_ = [
           "if"
-        , "else"
-        , "then"
-        ]
-
-    _moduleStrucKeywords_ = [
-          "import"
-        , "as"
-        , "from"
-        , "export"
         ]
 
     _declarationKeywords_ = [
@@ -279,32 +268,6 @@ module Tokenizer (
         , "type"
         , "default"
         -- , "class" -- ?
-        ]
-
-    _operatorAliases = [
-          "to" -- ->
-        -- , "defined" -- :: --?
-        , "yields" -- =>
-        , "return" -- <-
-        , "kindOf" -- ~
-        , "equals" -- =
-        , "equalsNot" -- !=
-        , "after" -- .
-        , "and" -- &
-        , "or" -- |
-        , "greaterThan" -- >
-        , "lessThan" -- <
-        , "plus" -- +
-        , "minus" -- -
-        , "times" -- *
-        , "div" -- /
-        ]
-
-    _infoKeywords = [
-          "async"
-        , "recursive"
-        , "parallel"
-        , "io"
         ]
 
     data Token = Token {
@@ -321,12 +284,13 @@ module Tokenizer (
                            else _untilType_ fs x
 
     additionalPredicateToType = [
-              ((`elem` _controlStrucKeywords_), T_ControlStrucKeyword)
-            , ((`elem` _optionalFunctionFlagsKeywords_), T_FunctionFlagKeyword)
-            , ((`elem` _optionalFunctionAdditionKeywords_), T_FunctionAdditionKeyword)
-            , ((`elem` _moduleStrucKeywords_), T_ModuleStrucKeyword)
+              ((== "if"), T_If)
+            , ((`elem` _optionalFlagKeywords_), T_FlagKeyword)
+            , ((== "export"), T_Export)
+            , ((== "import"), T_Import)
+            , ((== "importAs"), T_ImportAs)
+            , ((== "catch"), T_Catch)
             , ((`elem` _declarationKeywords_), T_DeclarationKeyword)
-            , ((`elem` _operatorAliases), T_Operator)
             , ((`elem` ["true", "false"]), T_BooleanConst)
             ]
             ++ predicateToType

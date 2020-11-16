@@ -19,6 +19,12 @@ module Tokenizer.RegexSpec where
                 expected = False
             actual `shouldBe` expected
 
+    checkProp p = do
+        it p $ do
+            let actual = _isProp $ L.pack p
+                expected = True
+            actual `shouldBe` expected
+
     checkType t = do
         it t $ do
             let actual = _isType $ L.pack t
@@ -105,6 +111,13 @@ module Tokenizer.RegexSpec where
                 checkNotSymbol "\\naaa" "\naaa"
                 checkNotSymbol ":" ":"
                 checkNotSymbol "a:" "a:"
+                checkNotSymbol "_123:" "_123:"
+                checkNotSymbol "a-b:" "a-b:"
+
+            describe "_isProp" $ do
+                checkProp "a:"
+                checkProp "_123:"
+                checkProp "a-b:"
 
             describe "_isType" $ do
                 checkType "A"
@@ -122,6 +135,10 @@ module Tokenizer.RegexSpec where
                 checkNotUnresolvedNumber "00" "00"
                 checkNotUnresolvedNumber "00." "00."
                 checkNotUnresolvedNumber "023." "023."
+                checkNotUnresolvedNumber "07/" "07/"
+                checkNotUnresolvedNumber "0.7/" "0.7/"
+                checkNotUnresolvedNumber "7/09" "7/09"
+                checkNotUnresolvedNumber "7/09.5" "7/09.5"
 
             describe "_isNumber" $ do
                 checkNumber "0"
@@ -137,6 +154,7 @@ module Tokenizer.RegexSpec where
                 checkNumber "-121231230.89712098376912870"
                 checkNumber "2/5"
                 checkNumber "4/7115"
+                checkNumber "40/70"
 
                 checkNotNumber "00.0" "00.0"
                 checkNotNumber "0123" "0123"
@@ -144,6 +162,11 @@ module Tokenizer.RegexSpec where
                 checkNotNumber "0.12.3" "0.12.3"
                 checkNotNumber "0." "0."
                 checkNotNumber "123." "123."
+                checkNotNumber "0/0" "0/0"
+                checkNotNumber "2/0" "2/0"
+                checkNotNumber "0/3" "0/3"
+                checkNotNumber "0.4/3" "0.4/3"
+                checkNotNumber "2/3.5" "2/3.5"
 
             describe "_endingChars" $ do
                 it "test\"" $ do

@@ -1,5 +1,5 @@
-import (a b c "./utils.rosi")
-importAs (tdd "./tdd.rosi")
+import (a b c "./utils.team")
+importAs (tdd "./tdd.team")
 
 export (type MyType [a: Number b: String c: Bool])
 
