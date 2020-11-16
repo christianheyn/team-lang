@@ -1,0 +1,32 @@
+import (a b c "./utils.rosi")
+importAs (tdd "./tdd.rosi")
+
+export (type MyType [a: Number b: String c: Bool])
+
+(alias AType MyType)
+
+export feature {
+    main #@
+    {[String] {String|TEST String} [a: Number b: String c: tdd.Type]}
+    (args f)
+    (run-n
+        (print tdd.some)
+        (print "Like Lisp it has
+multiline strings")
+        (print (++ "But " "Better" "!"))
+        [ 2 3.5 4 5 ])}
+    catch {(err) ()}
+
+ export util {map (f xs) ()}
+
+# () {} []
+
+(lens some a: 0)
+
+
+{getProp
+    (Prop String)
+    (p)
+    (view p data)
+
+    {catch (e) ()}}

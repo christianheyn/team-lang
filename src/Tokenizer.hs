@@ -10,7 +10,7 @@ module Tokenizer (
     , _isNumber
     , _isUnresolvedNumber
     , _isType
-    , _isId
+    , _isSymbol
     , _isOperator
     , _isOpenSquareBracket
     , _isClosingSquareBracket
@@ -69,12 +69,12 @@ module Tokenizer (
     _isNumber "0" = True
     _isNumber "1" = True
     _isNumber x   = _noNewlineStart x && _noSenslessZero_ x && match x
-        where match = matchRegex "^(\\-?)([0-9]{1,})(\\.{1}([0-9]{1,})){0,1}$"
+        where match = matchRegex "(^(\\-?)([0-9]{1,})(\\.{1}([0-9]{1,})){0,1}$)|(^(\\-?)([1-9]{1,})(\\/){1}[0-9]{1,}$)"
 
     _isUnresolvedNumber :: L.ByteString -> Bool
     _isUnresolvedNumber "" = False
     _isUnresolvedNumber x  = _noNewlineStart x && _noSenslessZero_ x && match x
-        where match = matchRegex "^(\\-?)([0-9]{1,})(\\.{1})$"
+        where match = matchRegex "^(\\-?)([0-9]{1,})(\\.{1}|\\/{1})$"
 
     _isType :: L.ByteString -> Bool
     _isType "" = False
@@ -108,18 +108,22 @@ module Tokenizer (
     _isClosingRoundBracket ")" = True
     _isClosingRoundBracket _   = False
 
+    _noNewlineStart x = L.head x /= '\n' && L.last x /= '\n'
+
     _isComment :: L.ByteString -> Bool
     _isComment "" = False
     _isComment x  = _noNewlineStart x && matchRegex "^#.*$" x
 
-    _isId :: L.ByteString -> Bool
-    _isId "" = False
-    _isId x  = _noNewlineStart x && matchRegex "^[a-z_]+[a-z_A-Z0-9]*$" x
+    _isSymbol :: L.ByteString -> Bool
+    _isSymbol "" = False
+    _isSymbol x  = _noNewlineStart x && matchRegex "^[-a-z_\\=\\~\\&\\|\\*\\+\\<\\>\\/\\?\\!\\$\\%]+[-a-z_A-Z0-9\\=\\~\\&\\|\\*\\+\\<\\>\\/\\?\\!\\$\\%]*(')*$" x
+
+    _isProp :: L.ByteString -> Bool
+    _isProp "" = False
+    _isProp x  = _noNewlineStart x && matchRegex "^[a-z_]+[-a-z_A-Z0-9]*(\\:){1}$" x
 
     _isNewline :: L.ByteString -> Bool
     _isNewline x  = x == "\n"
-
-    _noNewlineStart x = L.head x /= '\n' && L.last x /= '\n'
 
     _isSpace :: L.ByteString -> Bool
     _isSpace x  = _noNewlineStart x && matchRegex "^( )+$" x
@@ -133,7 +137,8 @@ module Tokenizer (
     _isSemicolon _   = False
 
     data TokenType =
-          T_Id
+          T_Symbol
+        | T_Prop
         | T_Type
         | T_Number
         | T_String
@@ -178,7 +183,7 @@ module Tokenizer (
         , (_isSpace,                T_Space)
 
         , (_isType,                 T_Type)
-        , (_isId,                   T_Id)
+        , (_isSymbol,               T_Symbol)
 
         , (_isSeparator,            T_Separator)
 

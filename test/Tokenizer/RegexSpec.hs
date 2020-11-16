@@ -7,147 +7,143 @@ module Tokenizer.RegexSpec where
     import qualified Data.ByteString.Lazy.Char8 as L
     import Tokenizer
 
+    checkSymbol s = do
+        it s $ do
+            let actual = _isSymbol $ L.pack s
+                expected = True
+            actual `shouldBe` expected
+
+    checkNotSymbol x y = do
+        it ("NOT: " ++ x) $ do
+            let actual = _isSymbol $ y
+                expected = False
+            actual `shouldBe` expected
+
+    checkType t = do
+        it t $ do
+            let actual = _isType $ L.pack t
+                expected = True
+            actual `shouldBe` expected
+
+    checkUnresolvedNumber n = do
+        it n $ do
+            let actual = _isUnresolvedNumber $ L.pack n
+                expected = True
+            actual `shouldBe` expected
+
+    checkNotUnresolvedNumber n m = do
+        it ("NOT: " ++ n) $ do
+            let actual = _isUnresolvedNumber m
+                expected = False
+            actual `shouldBe` expected
+
+    checkNumber n = do
+        it n $ do
+            let actual = _isNumber $ L.pack n
+                expected = True
+            actual `shouldBe` expected
+
+    checkNotNumber n m = do
+        it ("NOT: " ++ n) $ do
+            let actual = _isNumber m
+                expected = False
+            actual `shouldBe` expected
+
+    checkUnresolvedString s = do
+        it s $ do
+            let actual = _isUnresolvedString $ L.pack s
+                expected = True
+            actual `shouldBe` expected
+
+    checkNotUnresolvedString s s' = do
+        it ("NOT: " ++ s) $ do
+            let actual = _isUnresolvedString s'
+                expected = False
+            actual `shouldBe` expected
+
+    checkString s = do
+        it s $ do
+            let actual = _isString $ L.pack s
+                expected = True
+            actual `shouldBe` expected
+
+    checkNotString s s' = do
+        it ("NOT: " ++ s) $ do
+            let actual = _isString s'
+                expected = False
+            actual `shouldBe` expected
+
     spec :: Spec
     spec = do
         describe "Token Regex" $ do
 
-            describe "_isId" $ do
-                it "true when one letter" $ do
-                    let actual = _isId "a"
-                        expected = True
-                    actual `shouldBe` expected
+            describe "_isSymbol" $ do
+                checkSymbol "a"
+                checkSymbol "a'"
+                checkSymbol "a''"
+                checkSymbol "a'''"
+                checkSymbol "aA"
+                checkSymbol "_23"
+                checkSymbol "_23+-!$></Aa****%"
+                checkSymbol "+"
+                checkSymbol "-"
+                checkSymbol "*"
+                checkSymbol "/"
+                checkSymbol "="
+                checkSymbol "!"
+                checkSymbol "?"
+                checkSymbol "$"
+                checkSymbol "<"
+                checkSymbol ">"
+                checkSymbol "~"
+                checkSymbol "_"
+                checkSymbol "%"
+                checkSymbol "|"
+                checkSymbol "&"
+                checkSymbol "<>"
 
-                    let actual = _isId "_23"
-                        expected = True
-                    actual `shouldBe` expected
-
-                it "false when space" $ do
-                    let actual = _isId "\naaa"
-                        expected = False
-                    actual `shouldBe` expected
+                checkNotSymbol "\\naaa" "\naaa"
+                checkNotSymbol ":" ":"
+                checkNotSymbol "a:" "a:"
 
             describe "_isType" $ do
-                it "true when one letter" $ do
-                    let actual = _isType "A"
-                        expected = True
-                    actual `shouldBe` expected
-
-                    let actual = _isType "Z"
-                        expected = True
-                    actual `shouldBe` expected
-
-                it "true when first letter uppercase" $ do
-                    let actual = _isType "Abc"
-                        expected = True
-                    actual `shouldBe` expected
-
-                    let actual = _isType "Z_a"
-                        expected = True
-                    actual `shouldBe` expected
-
-                    let actual = _isType "Z012_Ax"
-                        expected = True
-                    actual `shouldBe` expected
-
-                    let actual = _isType "Z___"
-                        expected = True
-                    actual `shouldBe` expected
+                checkType "A"
+                checkType "Z"
+                checkType "Abc"
+                checkType "Z_a"
+                checkType "Z012_Ax"
+                checkType "Z___"
 
             describe "_isUnresolvedNumber" $ do
-                it "true when ends with ." $ do
-                    let actual = _isUnresolvedNumber "0."
-                        expected = True
-                    actual `shouldBe` expected
-
-                    let actual = _isUnresolvedNumber "23."
-                        expected = True
-                    actual `shouldBe` expected
-
-                it "false when starting with 0" $ do
-                    let actual = _isUnresolvedNumber "00."
-                        expected = False
-                    actual `shouldBe` expected
-
-                    let actual = _isUnresolvedNumber "023."
-                        expected = False
-                    actual `shouldBe` expected
-
-
+                checkUnresolvedNumber "1."
+                checkUnresolvedNumber "0."
+                checkUnresolvedNumber "23."
+                checkUnresolvedNumber "2/"
+                checkNotUnresolvedNumber "00" "00"
+                checkNotUnresolvedNumber "00." "00."
+                checkNotUnresolvedNumber "023." "023."
 
             describe "_isNumber" $ do
-                it "true for natural numbers" $ do
-                    let actual = _isNumber "0"
-                        expected = True
-                    actual `shouldBe` expected
+                checkNumber "0"
+                checkNumber "23"
+                checkNumber "2321376197319827538125347126543615234"
+                checkNumber "0.0"
+                checkNumber "0.2"
+                checkNumber "121231230.89712098376912870"
+                checkNumber "-0"
+                checkNumber "-0.0"
+                checkNumber "-3"
+                checkNumber "-0.2"
+                checkNumber "-121231230.89712098376912870"
+                checkNumber "2/5"
+                checkNumber "4/7115"
 
-                    let actual = _isNumber "23"
-                        expected = True
-                    actual `shouldBe` expected
-
-                    let actual = _isNumber "2321376197319827538125347126543615234"
-                        expected = True
-                    actual `shouldBe` expected
-
-                it "true for float numbers" $ do
-                    let actual = _isNumber "0.0"
-                        expected = True
-                    actual `shouldBe` expected
-
-                    let actual = _isNumber "0.2"
-                        expected = True
-                    actual `shouldBe` expected
-
-                    let actual = _isNumber "121231230.89712098376912870"
-                        expected = True
-                    actual `shouldBe` expected
-
-                it "true for negative numbers" $ do
-                    let actual = _isNumber "-0"
-                        expected = True
-                    actual `shouldBe` expected
-
-                    let actual = _isNumber "-0.0"
-                        expected = True
-                    actual `shouldBe` expected
-
-                    let actual = _isNumber "-3"
-                        expected = True
-                    actual `shouldBe` expected
-
-                    let actual = _isNumber "-0.2"
-                        expected = True
-                    actual `shouldBe` expected
-
-                    let actual = _isNumber "-121231230.89712098376912870"
-                        expected = True
-                    actual `shouldBe` expected
-
-                it "false when starting with 0" $ do
-                    let actual = _isNumber "00.0"
-                        expected = False
-                    actual `shouldBe` expected
-
-                    let actual = _isNumber "0123"
-                        expected = False
-                    actual `shouldBe` expected
-
-                it "false when more then one ." $ do
-                    let actual = _isNumber "0..0"
-                        expected = False
-                    actual `shouldBe` expected
-
-                    let actual = _isNumber "0.12.3"
-                        expected = False
-                    actual `shouldBe` expected
-
-                it "false when no number after ." $ do
-                    let actual = _isNumber "0."
-                        expected = False
-                    actual `shouldBe` expected
-
-                    let actual = _isNumber "123."
-                        expected = False
-                    actual `shouldBe` expected
+                checkNotNumber "00.0" "00.0"
+                checkNotNumber "0123" "0123"
+                checkNotNumber "0..0" "0..0"
+                checkNotNumber "0.12.3" "0.12.3"
+                checkNotNumber "0." "0."
+                checkNotNumber "123." "123."
 
             describe "_endingChars" $ do
                 it "test\"" $ do
@@ -161,125 +157,23 @@ module Tokenizer.RegexSpec where
                     actual `shouldBe` expected
 
             describe "_isUnresolvedString" $ do
-                it "\"test" $ do
-                    let actual = _isUnresolvedString "\"test"
-                        expected = True
-                    actual `shouldBe` expected
-
-                it "\"test\\\"" $ do
-                    let actual = _isUnresolvedString "\"test\\\""
-                        expected = True
-                    actual `shouldBe` expected
-
-                it "\"test\\\"\"" $ do
-                    let actual = _isUnresolvedString "\"test\\\"\""
-                        expected = False
-                    actual `shouldBe` expected
-
-                it "\"test\\\"\"a" $ do
-                    let actual = _isUnresolvedString "\"test\\\"\"a"
-                        expected = False
-                    actual `shouldBe` expected
+                checkUnresolvedString "\"test"
+                checkUnresolvedString "\"test\\\""
+                checkNotUnresolvedString "\"test\\\"\"" "\"test\\\"\""
+                checkNotUnresolvedString "\"test\\\"\"a" "\"test\\\"\"a"
 
             describe "_isString" $ do
-                it "test" $ do
-                    let actual = _isString "test"
-                        expected = False
-                    actual `shouldBe` expected
+                checkString "\"\""
+                checkString "\"test\""
+                checkString "\"test\ntest\""
+                checkString "\"test\ntest\""
+                checkString "\"attr=\\\"value\\\"\""
 
-                it "test\"" $ do
-                    let actual = _isString "test\""
-                        expected = False
-                    actual `shouldBe` expected
-
-                it "\"test\\\"" $ do
-                    let actual = _isString "\"test\\\""
-                        expected = False
-                    actual `shouldBe` expected
-
-                it "\"\"" $ do
-                    let actual = _isString "\"\""
-                        expected = True
-                    actual `shouldBe` expected
-
-                it "\"test\"" $ do
-                    let actual = _isString "\"test\""
-                        expected = True
-                    actual `shouldBe` expected
-
-                it "\"test\"a" $ do
-                    let actual = _isString "\"test\"a"
-                        expected = False
-                    actual `shouldBe` expected
-
-                it "\"test\ntest\"" $ do
-                    let actual = _isString "\"test\ntest\""
-                        expected = True
-                    actual `shouldBe` expected
-
-                it "\"test\ntest\"a" $ do
-                    let actual = _isString "\"test\ntest\"a"
-                        expected = False
-                    actual `shouldBe` expected
-
-
-            describe "_isOperator" $ do
-                it "=>" $ do
-                    let actual = _isOperator "=>"
-                        expected = True
-                    actual `shouldBe` expected
-
-                it "->" $ do
-                    let actual = _isOperator "->"
-                        expected = True
-                    actual `shouldBe` expected
-
-                it "::" $ do
-                    let actual = _isOperator "::"
-                        expected = True
-                    actual `shouldBe` expected
-
-                it "?" $ do
-                    let actual = _isOperator "?"
-                        expected = True
-                    actual `shouldBe` expected
-
-                it "!" $ do
-                    let actual = _isOperator "!"
-                        expected = True
-                    actual `shouldBe` expected
-
-                it "-" $ do
-                    let actual = _isOperator "-"
-                        expected = True
-                    actual `shouldBe` expected
-
-                it "+" $ do
-                    let actual = _isOperator "+"
-                        expected = True
-                    actual `shouldBe` expected
-
-                it "*" $ do
-                    let actual = _isOperator "*"
-                        expected = True
-                    actual `shouldBe` expected
-
-                it "|" $ do
-                    let actual = _isOperator "|"
-                        expected = True
-                    actual `shouldBe` expected
-
-                it "/" $ do
-                    let actual = _isOperator "/"
-                        expected = True
-                    actual `shouldBe` expected
-
-                it "not #" $ do
-                    let actual = _isOperator "#"
-                        expected = False
-                    actual `shouldBe` expected
-
-
+                checkNotString "test" "test"
+                checkNotString "test\"" "test\""
+                checkNotString "\"test\\\"" "\"test\\\""
+                checkNotString "\"test\"a" "\"test\"a"
+                checkNotString "\"test\ntest\"a" "\"test\ntest\"a"
 
             describe "_isComment" $ do
                 it "# " $ do
