@@ -37,6 +37,14 @@ module Tokenizer.TokenizeSpec where
                 , (T_ClosingCurlyBracket, "}", 10)
                 ]
 
+            testTokenize "(+ 2+3i 3)" [
+                  (T_OpenRoundBracket, "(", 0)
+                , (T_Symbol, "+", 1)
+                , (T_Number, "2+3i", 3)
+                , (T_Number, "3", 5)
+                , (T_ClosingRoundBracket, ")", 6)
+                ]
+
             testTokenize "(let (a 1/3) ())" [
                   (T_OpenRoundBracket, "(", 0)
                 , (T_Let, "let", 1)

@@ -64,22 +64,47 @@ module Tokenizer (
     _senslessZero_ = matchRegex "^(\\-?)0{1}([0-9]{1,})"
     _noSenslessZero_ = not . _senslessZero_
 
+    _naturalReg = "(\\-|\\+?)([0-9]{1,})(\\.{1}([0-9]{1,})){0,1}"
+    _rationlReg = "(\\-|\\+)?([1-9]{1}[0-9]*)(\\/){1}(\\-|\\+)?([1-9]{1}[0-9]*)"
+    _complexReg = _naturalReg <> "(\\+)" <> _naturalReg <> "\\i"
+
     _isNumber :: L.ByteString -> Bool
     _isNumber ""  = False
     _isNumber "0" = True
     _isNumber "1" = True
     _isNumber x   = _noNewlineStart x && _noSenslessZero_ x && match x
-        where match = matchRegex "(^(\\-?)([0-9]{1,})(\\.{1}([0-9]{1,})){0,1}$)|(^(\\-?)([1-9]{1}[0-9]*)(\\/){1}([1-9]{1}[0-9]*)$)"
+        where match = matchRegex (
+                                    "^(("
+                                    <> _naturalReg
+                                    <> ")|("
+                                    <> _rationlReg
+                                    <> ")|("
+                                    <> _complexReg
+                                    <> "))$"
+                                 )
 
     _isUnresolvedNumber :: L.ByteString -> Bool
     _isUnresolvedNumber "" = False
     _isUnresolvedNumber x  = _noNewlineStart x && _noSenslessZero_ x && match x
-        where match = matchRegex "^(\\-?)([0-9]{1,})(\\.{1}|\\/{1})$"
+        where match = matchRegex (
+                                    "^((\\-?)([0-9]{1,})(\\.{1}|\\/{1})|("
+                                    <> _complexReg'
+                                    <> ")|("
+                                    <> _complexReg''
+                                    <> ")|("
+                                    <> _complexReg'''
+                                    <> ")|("
+                                    <> _complexReg''''
+                                    <> "))$"
+                                 )
+              _complexReg'    = _naturalReg <> "(\\+)"
+              _complexReg''   = _naturalReg <> "(\\+)" <> _naturalReg
+              _complexReg'''  = _naturalReg <> "(\\+)" <> "(\\-|\\+)?"
+              _complexReg'''' = _naturalReg <> "(\\+)" <> "(\\-|\\+)?([0-9]+\\.)"
 
     _isType :: L.ByteString -> Bool
     _isType "" = False
     _isType x  = _noNewlineStart x && matchRegex "^([A-Z]{1})([0-9A-za-z_]*)$" x
-
 
     _isOpenSquareBracket :: L.ByteString -> Bool
     _isOpenSquareBracket "[" = True

@@ -21,9 +21,10 @@ multiline strings")
 
 # () {} []
 
-(lens some a: 0)
 
 (let a String "TEST")
+(let x Number 3+2i)
+(let x' Number -1/7)
 
 {getProp
     (Prop String)
