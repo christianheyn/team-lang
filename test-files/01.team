@@ -7,7 +7,7 @@ export (type MyType [a: Number b: String c: Bool])
 
 export feature {
     main #@
-    {[String] {String|TEST String} [a: Number b: String c: tdd.Type]}
+    {[String] {(& String TEST) String} [a: Number b: String c: tdd.Type]}
     (args f)
     (run-n
         (print tdd.some)
@@ -21,10 +21,15 @@ multiline strings")
 
 # () {} []
 
+(let x Number 3+2i (print x))
 
-(let a String "TEST")
-(let x Number 3+2i)
-(let x' Number -1/7)
+(lets
+    x' Number -1/7
+    y String "Y as string"
+    z Prop someProp:
+    (progn
+        (print x')
+        (print y)))
 
 {getProp
     (Prop String)
@@ -32,3 +37,9 @@ multiline strings")
     (view p data)
 
     {catch (e) ()}}
+
+{add (x) (+ x 1)}
+
+(map add [1 2 3 4 5])           # -> [2 3 4 5 6]
+(map {(x) (+ x 1)} [1 2 3 4 5]) # -> [2 3 4 5 6]
+(map (+ 1) [1 2 3 4 5])         # -> [2 3 4 5 6]

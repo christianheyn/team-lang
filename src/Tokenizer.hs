@@ -164,7 +164,6 @@ module Tokenizer (
         | T_Type
         | T_Number
         | T_String
-        | T_Operator
 
         | T_OpenSquareBracket
         | T_ClosingSquareBracket
@@ -264,7 +263,6 @@ module Tokenizer (
 
     _optionalFlagKeywords_ = [
           "feature"
-        , "function"
         , "project"
         , "hotfix"
         , "plugin"
