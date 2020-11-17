@@ -19,9 +19,9 @@ module Tokenizer.RegexSpec where
                 expected = False
             actual `shouldBe` expected
 
-    checkProp p = do
+    checkLens p = do
         it p $ do
-            let actual = _isProp $ L.pack p
+            let actual = _isLens $ L.pack p
                 expected = True
             actual `shouldBe` expected
 
@@ -114,10 +114,10 @@ module Tokenizer.RegexSpec where
                 checkNotSymbol "_123:" "_123:"
                 checkNotSymbol "a-b:" "a-b:"
 
-            describe "_isProp" $ do
-                checkProp "a:"
-                checkProp "_123:"
-                checkProp "a-b:"
+            describe "_isLens" $ do
+                checkLens "a:"
+                checkLens "_123:"
+                checkLens "a-b:"
 
             describe "_isType" $ do
                 checkType "A"

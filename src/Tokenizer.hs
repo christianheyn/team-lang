@@ -11,7 +11,7 @@ module Tokenizer (
     , _isUnresolvedNumber
     , _isType
     , _isSymbol
-    , _isProp
+    , _isLens
     , _isOpenSquareBracket
     , _isClosingSquareBracket
     , _isOpenCurlyBracket
@@ -140,9 +140,9 @@ module Tokenizer (
     _isSymbol "" = False
     _isSymbol x  = _noNewlineStart x && matchRegex "^[-a-z_\\=\\~\\&\\|\\*\\+\\<\\>\\/\\?\\!\\$\\%]+[-a-z_A-Z0-9\\=\\~\\&\\|\\*\\+\\<\\>\\/\\?\\!\\$\\%]*(')*$" x
 
-    _isProp :: L.ByteString -> Bool
-    _isProp "" = False
-    _isProp x  = _noNewlineStart x && matchRegex "^[a-z_]+[-a-z_A-Z0-9]*(\\:){1}$" x
+    _isLens :: L.ByteString -> Bool
+    _isLens "" = False
+    _isLens x  = _noNewlineStart x && matchRegex "^[a-z_]+[-a-z_A-Z0-9]*(\\:){1}$" x
 
     _isNewline :: L.ByteString -> Bool
     _isNewline x  = x == "\n"
@@ -160,7 +160,7 @@ module Tokenizer (
 
     data TokenType =
           T_Symbol
-        | T_Prop
+        | T_Lens
         | T_Type
         | T_Number
         | T_String
@@ -185,9 +185,11 @@ module Tokenizer (
         | T_Import
         | T_ImportAs
         | T_Let
-        | T_Lets
+        | T_Var
+        | T_LensKeyword
         | T_TypeKeyword
         | T_TypesKeyword
+        | T_Do
         | T_If
         | T_Catch
         | T_Alias
@@ -216,6 +218,7 @@ module Tokenizer (
 
         , (_isType,                 T_Type)
         , (_isSymbol,               T_Symbol)
+        , (_isLens,                 T_Lens)
 
         , (_isSeparator,            T_Separator)
 
@@ -294,7 +297,8 @@ module Tokenizer (
               ((== "if"), T_If)
             , ((`elem` _optionalFlagKeywords_), T_FlagKeyword)
             , ((== "let"), T_Let)
-            , ((== "lets"), T_Lets)
+            , ((== "var"), T_Var)
+            , ((== "lens"), T_LensKeyword)
             , ((== "type"), T_TypeKeyword)
             , ((== "types"), T_TypesKeyword)
             , ((== "test"), T_TEST)
@@ -303,6 +307,7 @@ module Tokenizer (
             , ((== "importAs"), T_ImportAs)
             , ((== "catch"), T_Catch)
             , ((== "alias"), T_Alias)
+            , ((== "do"), T_Do)
             , ((== "parallel"), T_Parallel)
             , ((== "concurrent"), T_Concurrent)
             , ((`elem` ["true", "false"]), T_BooleanConst)
@@ -330,4 +335,3 @@ module Tokenizer (
                 , _TType t /= T_Newline
                 , _TType t /= T_Comment
                 ]
-
