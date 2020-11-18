@@ -30,6 +30,8 @@ buildIn = [
     , "or"
     , "some"
 
+    , "default"
+
     , "head"
     , "last"
     , "tail"

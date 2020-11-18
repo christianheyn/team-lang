@@ -241,8 +241,6 @@ module Tokenizer (
         , (_isLens,                 T_Lens)
         , (_isNamedParameter,       T_NamedParameter)
 
-        , (_isSeparator,            T_Separator)
-
         , (_isOpenSquareBracket,    T_OpenSquareBracket)
         , (_isClosingSquareBracket, T_ClosingSquareBracket)
 
@@ -260,6 +258,7 @@ module Tokenizer (
 
         , (_isComment,              T_Comment)
         , (_isSemicolon,            T_Semicolon)
+        , (_isSeparator,            T_Separator)
         ]
 
 
@@ -314,6 +313,7 @@ module Tokenizer (
                            then (snd f)
                            else _untilType_ fs x
 
+
     additionalPredicateToType = [
               ((== "if"), T_If)
             , ((== "let"), T_Let)
@@ -367,4 +367,5 @@ module Tokenizer (
                 , _TType t /= T_Semicolon
                 , _TType t /= T_Newline
                 , _TType t /= T_Comment
+                , _TType t /= T_Separator
                 ]

@@ -36,6 +36,28 @@ module Tokenizer.TokenizeSpec where
                 , (T_ClosingCurlyBracket, "}", 10)
                 ]
 
+            testTokenize "[1 2 3]" [
+                  (T_OpenSquareBracket, "[", 0)
+                , (T_Number, "1", 1)
+                , (T_Number, "2", 3)
+                , (T_Number, "3", 5)
+                , (T_ClosingSquareBracket, "]", 6)
+                ]
+            testTokenize "[1, 2, 3]" [
+                  (T_OpenSquareBracket, "[", 0)
+                , (T_Number, "1", 1)
+                , (T_Number, "2", 4)
+                , (T_Number, "3", 7)
+                , (T_ClosingSquareBracket, "]", 8)
+                ]
+            testTokenize "[1, 2, 3,]" [
+                  (T_OpenSquareBracket, "[", 0)
+                , (T_Number, "1", 1)
+                , (T_Number, "2", 4)
+                , (T_Number, "3", 7)
+                , (T_ClosingSquareBracket, "]", 9)
+                ]
+
             testTokenize "{add (:x :y) (+ x y)}" [
                   (T_OpenCurlyBracket, "{", 0)
                 , (T_Symbol, "add", 1)
