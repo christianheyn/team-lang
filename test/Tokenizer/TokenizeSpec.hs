@@ -19,7 +19,6 @@ module Tokenizer.TokenizeSpec where
     spec :: Spec
     spec = do
         describe "tokenize" $ do
-
             it "not" $ do
                 let actual = tokenize "feature {t () ()}"
                     expected = ["feature"," ","{","t"," ","(",")"," ","(",")","}"]
@@ -27,7 +26,7 @@ module Tokenizer.TokenizeSpec where
 
         describe "generateTokens" $ do
             testTokenize "feature {t () ()}" [
-                  (T_FlagKeyword, "feature", 0)
+                  (T_FlagFeature, "feature", 0)
                 , (T_OpenCurlyBracket, "{", 2)
                 , (T_Symbol, "t", 3)
                 , (T_OpenRoundBracket, "(", 5)

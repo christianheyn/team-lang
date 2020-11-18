@@ -196,7 +196,21 @@ module Tokenizer (
         | T_TEST
         | T_Parallel
         | T_Concurrent
-        | T_FlagKeyword
+
+        | T_FlagFeature
+        | T_FlagProject
+        | T_FlagHotfix
+        | T_FlagPlugin
+        | T_FlagModule
+        | T_FlagLibrary
+        | T_FlagFramework
+        | T_FlagUtil
+        | T_FlagConfig
+        | T_FlagPrototype
+        | T_FlagResearch
+        | T_FlagTBD
+        | T_FlagDeprecated
+
         | T_FunctionAdditionKeyword
         | T_ModuleStrucKeyword
         | T_BooleanConst
@@ -295,7 +309,6 @@ module Tokenizer (
 
     additionalPredicateToType = [
               ((== "if"), T_If)
-            , ((`elem` _optionalFlagKeywords_), T_FlagKeyword)
             , ((== "let"), T_Let)
             , ((== "var"), T_Var)
             , ((== "lens"), T_LensKeyword)
@@ -311,6 +324,19 @@ module Tokenizer (
             , ((== "parallel"), T_Parallel)
             , ((== "concurrent"), T_Concurrent)
             , ((`elem` ["true", "false"]), T_BooleanConst)
+            , ((== "feature"), T_FlagFeature)
+            , ((== "project"), T_FlagProject)
+            , ((== "hotfix"), T_FlagHotfix)
+            , ((== "plugin"), T_FlagPlugin)
+            , ((== "module"), T_FlagModule)
+            , ((== "library"), T_FlagLibrary)
+            , ((== "framework"), T_FlagFramework)
+            , ((== "util"), T_FlagUtil)
+            , ((== "config"), T_FlagConfig)
+            , ((== "prototype"), T_FlagPrototype)
+            , ((== "research"), T_FlagResearch)
+            , ((== "tbd"), T_FlagTBD)
+            , ((== "deprecated"), T_FlagDeprecated)
             ]
             ++ predicateToType
             ++ [((\_ -> True), T_Unknowen)]
