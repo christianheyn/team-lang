@@ -12,6 +12,7 @@ module Tokenizer (
     , _isType
     , _isSymbol
     , _isLens
+    , _isNamedParameter
     , _isOpenSquareBracket
     , _isClosingSquareBracket
     , _isOpenCurlyBracket
@@ -144,6 +145,10 @@ module Tokenizer (
     _isLens "" = False
     _isLens x  = _noNewlineStart x && matchRegex "^[a-z_]+[-a-z_A-Z0-9]*(\\:){1}$" x
 
+    _isNamedParameter :: L.ByteString -> Bool
+    _isNamedParameter "" = False
+    _isNamedParameter x  = _noNewlineStart x && matchRegex "^(\\:){1}[a-z_]+[-a-z_A-Z0-9]*$" x
+
     _isNewline :: L.ByteString -> Bool
     _isNewline x  = x == "\n"
 
@@ -164,6 +169,7 @@ module Tokenizer (
         | T_Type
         | T_Number
         | T_String
+        | T_NamedParameter
 
         | T_OpenSquareBracket
         | T_ClosingSquareBracket
@@ -233,6 +239,7 @@ module Tokenizer (
         , (_isType,                 T_Type)
         , (_isSymbol,               T_Symbol)
         , (_isLens,                 T_Lens)
+        , (_isNamedParameter,       T_NamedParameter)
 
         , (_isSeparator,            T_Separator)
 

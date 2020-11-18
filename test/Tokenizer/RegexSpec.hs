@@ -25,6 +25,12 @@ module Tokenizer.RegexSpec where
                 expected = True
             actual `shouldBe` expected
 
+    checkNamedParameter p = do
+        it p $ do
+            let actual = _isNamedParameter $ L.pack p
+                expected = True
+            actual `shouldBe` expected
+
     checkType t = do
         it t $ do
             let actual = _isType $ L.pack t
@@ -118,6 +124,14 @@ module Tokenizer.RegexSpec where
                 checkLens "a:"
                 checkLens "_123:"
                 checkLens "a-b:"
+                checkLens "a-2:"
+
+            describe "_isNamedParameter" $ do
+                checkNamedParameter ":a"
+                checkNamedParameter ":a12"
+                checkNamedParameter ":_12a"
+                checkNamedParameter ":a-b"
+                checkNamedParameter ":a-3"
 
             describe "_isType" $ do
                 checkType "A"
