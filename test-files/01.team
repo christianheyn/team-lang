@@ -5,9 +5,8 @@ export (type MyType [a: Number b: String c: Bool])
 
 (alias AType MyType)
 
-export feature {
-    main #@
-    ({[String] {(& String TEST) String} [a: Number b: String c: tdd.Type]})
+export feature {main #@
+    ([String] {(& String TEST) String} [a: Numbe, b: String, c: tdd.Type]})
     (args f)
     (run-n
         (print tdd.some)
@@ -19,17 +18,10 @@ multiline strings")
 
  export util {map (f xs) ()}
 
-# () {} []
 
 (var x Number 3+2i)
 
-(lets
-    x' Number -1/7
-    y String "Y as string"
-    z Lens someProp:
-    (progn
-        (print x')
-        (print y)))
+
 
 {getProp
     (Lens String)
@@ -42,16 +34,16 @@ multiline strings")
 
 (let
     (var a Number 3)
-    (var a Number 3)
-    (lens c: )
+    (lens c c: 0 b:)
     {f (x y) (add x y)}
+    (fun fn {(x) (x + 1)})
     (var l [Number] [1 2 3])
 
     (print (f a 3)))
 
 {f (x) (print (view a: x))}
 
-(lens a:
+(lens a
     b: 0 d:)
 
 (map add [1 2 3 4 5])           # -> [2 3 4 5 6]
@@ -59,3 +51,21 @@ multiline strings")
 (map (+ 1) [1 2 3 4 5])         # -> [2 3 4 5 6]
 
 test {() ()}
+
+{add
+    (x y)
+    ((T Number) T T Number)
+    (+ x y)
+    (wip)}
+
+{add
+    ((x) (y))
+    ((T Number) T T Number)
+    (+ x y)
+    (wip)}
+
+{map
+    (f xs)
+    ((T)(U) {T U} [T] [U])
+    (wip)
+}

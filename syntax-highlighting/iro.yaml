@@ -1,0 +1,272 @@
+#################################################################
+## Iro
+################################################################
+##
+## * Press Ctrl + '+'/'-' To Zoom in
+## * Press Ctrl + S to save and recalculate...
+## * Documents are saved to web storage.
+## * Only one save slot supported.
+## * Matches cannot span lines.
+## * Unicode chars must be defined in \u0000 to \uffff format.
+## * All matches must be contained by a single group ( ... )
+## * Look behinds not permitted, (?<= or (?<!
+## * Look forwards are permitted (?= or (?!
+## * Constants are defined as __my_const = (......)
+## * The \= format allows unescaped regular expressions
+## * Constants referenced by match \= $${__my_const}
+## * Constants can reference other constants
+## * You are free to delete all the default scopes.
+## * Twitter : ainslec , Web: http://eeyo.io/iro
+##
+################################################################
+
+name                   = team
+file_extensions []     = team;
+
+################################################################
+## Constants
+################################################################
+
+__SYMBOLS \= ([-a-z_\=\~\&\|\*\+\<\>\/\?\!\$\%]+[-a-z_A-Z0-9\=\~\&\|\*\+\<\>\/\?\!\$\%]*(')*)
+
+__NUMBERS \= ([\-|\+]?([0-9]{1,})(\.{1}([0-9]{1,})){0,1})
+################################################################
+## Styles
+################################################################
+
+styles [] {
+
+.default : style {
+   color                 = #ffffff
+}
+
+.comment : style {
+   color                 = #999999
+   italic                = true
+   ace_scope             = comment
+   textmate_scope        = comment
+   pygments_scope        = Comment
+}
+
+.lens : style {
+   color                 = red
+   ace_scope             = keyword
+   textmate_scope        = keyword
+}
+
+
+.para : style {
+   color                 = orange
+   ace_scope             = variable.parameter
+   textmate_scope        = variable.parameter
+}
+
+.function : style {
+   color                 = green
+   ace_scope             = entity.name.function.builtin
+   textmate_scope        = entity.name.function.builtin
+}
+
+
+.buildin : style {
+   color                 = brown
+   ace_scope             = entity.name.function
+   textmate_scope        = support.function
+}
+
+
+.numeric : style {
+   color                 = gold
+   ace_scope             = constant.numeric
+   textmate_scope        = constant.numeric
+}
+
+.types : style {
+   color                 = cyan
+   ace_scope             = storage.type
+   textmate_scope        = storage.type
+}
+
+.keyword : style {
+   color                 = red
+   ace_scope             = keyword
+   textmate_scope        = keyword
+}
+
+.string : style {
+   color                 = yellow
+   ace_scope             = string.quoted.double
+   textmate_scope        = string.quoted.double
+   pygments_scope        = String
+}
+
+}
+
+#################################################
+## Parse contexts
+#################################################
+
+contexts [] {
+
+##############################################
+## Main Context - Entry point context
+##############################################
+
+main : context {
+   : include "types" ;
+   : include "lens" ;
+   : include "para" ;
+   : include "function" ;
+   : include "keyword" ;
+   : include "numeric" ;
+   : include "string" ;
+   : include "comment" ;
+   : include "buildin" ;
+}
+
+#################################################
+## End of Contexts
+#################################################
+
+
+###########################################
+## Types Context
+###########################################
+
+types : context {
+   : pattern {
+      regex          \= (\b[A-Z]{1})([0-9A-Za-z_\-]*\b)
+      styles []       = .types;
+   }
+}
+
+
+
+###########################################
+## Lens Context
+###########################################
+
+lens : context {
+   : pattern {
+      regex          \= ([a-z_]+[-a-z_A-Z0-9]*(\:){1})
+      styles []       = .lens;
+   }
+}
+
+
+###########################################
+## Lens Context
+###########################################
+
+para : context {
+   : pattern {
+      regex          \= ((\:){1}[a-z_]+[-a-z_A-Z0-9]*)
+      styles []       = .para;
+   }
+}
+
+
+
+###########################################
+## Lens Context
+###########################################
+function : context {
+
+   : pattern {
+      regex          \= (fun(\s)*)($${__SYMBOLS})
+      styles []       = .keyword,.default,.function,.function,.function;
+   }
+   : pattern {
+      regex          \= ((\{)(\s)*)($${__SYMBOLS}?)
+      styles []       = .default,.default,.default,.function,.function,.function;
+   }
+}
+
+
+keyword : context {
+   : pattern {
+      regex          \= (\b(import|importAs|export)\b)
+      styles []       = .keyword;
+   }
+   : pattern {
+      regex          \= (\b(var|type|fun|lens)\b)
+      styles []       = .keyword;
+   }
+   : pattern {
+      regex          \= (\b(let|do)\b)
+      styles []       = .keyword;
+   }
+   : pattern {
+      regex          \= (\b(view|over|set)\b)
+      styles []       = .keyword;
+   }
+   : pattern {
+      regex          \= (\b(feature|project|hotfix|plugin|module|library|framework|util|config|prototype|research|tbd|deprecated)\b)
+      styles []       = .keyword;
+   }
+}
+
+
+buildin : context {
+   : pattern {
+      regex          \= (\b(map|reduce|filter)\b)
+      styles []       = .buildin;
+   }
+
+}
+
+
+###########################################
+## Numeric Context
+###########################################
+
+numeric : context {
+
+   : pattern {
+      regex          \= (\b(\-|\+)?([1-9]{1}[0-9]*)(/){1}(\-|\+)?([1-9]{1}[0-9]*)\b)
+      styles []       = .numeric;
+   }
+   : pattern {
+      regex          \= (\b($${__NUMBERS}(\+)$${__NUMBERS}\i)\b)
+      styles []       = .numeric;
+   }
+   : pattern {
+      regex          \= (\b$${__NUMBERS}\b)
+      styles []       = .numeric;
+   }
+}
+
+
+
+###########################################
+## String Context
+###########################################
+
+string : context {
+   : inline_push {
+      regex \= (")
+      styles[] = .string;
+      default_style = .string
+      : pop {
+          regex   \= ((?<!\\)")
+          styles[] = .string;
+      }
+   }
+}
+
+###########################################
+## Comment Context
+###########################################
+
+comment : context {
+   : pattern {
+      regex          \= (\s*(#)(.)*$)
+      styles []       = .comment;
+   }
+   : pattern {
+      regex          \= (\;|\,)
+      styles []       = .comment;
+   }
+}
+
+}
