@@ -1,5 +1,5 @@
-import (a b c "./utils.team")
-importAs (tdd "./tdd.team")
+import a b c "./utils.team"
+importAs tdd "./tdd.team"
 
 export (type MyType [a: Number b: String c: Bool])
 
@@ -17,6 +17,8 @@ multiline strings")
     catch {(err) ()}
 
  export util {map (f xs) ()}
+
+ +(-(2 3) 4)
 
 
 (var x Number 3+2i)
@@ -57,10 +59,10 @@ multiline strings")
 test {() ()}
 
 {add
-    (x y)
-    ((T Number) T T Number)
+    <N = Number, M = String> N -> N => N
+    (x = 3 ; y = a)
     (+ x y)
-    (wip)}
+}
 
 {add
     ((x) (y))

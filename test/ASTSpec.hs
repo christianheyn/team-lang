@@ -12,7 +12,7 @@ module ASTSpec where
     spec = do
         describe "Syntax" $ do
             it "Parameter (a, b)" $ do
-                let actual = isParamterList $ generateTokens "(a, b)"
+                let actual = isParamterList $ generateTokens "()"
                     expected = ([], [])
                 actual `shouldBe` expected
 
