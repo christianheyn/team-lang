@@ -27,6 +27,7 @@ source-repository head
 
 library
   exposed-modules:
+      Syntax
       Tokenizer
       Util.Regex
       AST

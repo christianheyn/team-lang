@@ -169,6 +169,8 @@ module Tokenizer (
         | T_Type
         | T_Number
         | T_String
+        | T_BooleanTrue
+        | T_BooleanFalse
         | T_NamedParameter
 
         | T_OpenSquareBracket
@@ -219,7 +221,6 @@ module Tokenizer (
 
         | T_FunctionAdditionKeyword
         | T_ModuleStrucKeyword
-        | T_BooleanConst
         | T_Unknowen
         deriving (Show, Eq, Generic, Typeable)
 
@@ -284,22 +285,6 @@ module Tokenizer (
     tokenize :: L.ByteString -> [L.ByteString]
     tokenize src = _combineToken_ src [""]
 
-    _optionalFlagKeywords_ = [
-          "feature"
-        , "project"
-        , "hotfix"
-        , "plugin"
-        , "module"
-        , "library"
-        , "framework"
-        , "util"
-        , "config"
-        , "prototype"
-        , "research"
-        , "tbd"
-        , "deprecated"
-        ]
-
     data Token = Token {
           _TType :: TokenType
         , _TValue :: L.ByteString
@@ -313,8 +298,7 @@ module Tokenizer (
                            then (snd f)
                            else _untilType_ fs x
 
-
-    additionalPredicateToType = [
+    specialSymbolsPredicat = [
               ((== "if"), T_If)
             , ((== "let"), T_Let)
             , ((== "var"), T_Var)
@@ -330,7 +314,8 @@ module Tokenizer (
             , ((== "do"), T_Do)
             , ((== "parallel"), T_Parallel)
             , ((== "concurrent"), T_Concurrent)
-            , ((`elem` ["true", "false"]), T_BooleanConst)
+            , ((== "true"), T_BooleanTrue)
+            , ((== "false"), T_BooleanFalse)
             , ((== "feature"), T_FlagFeature)
             , ((== "project"), T_FlagProject)
             , ((== "hotfix"), T_FlagHotfix)
@@ -354,7 +339,7 @@ module Tokenizer (
               go _     []     = []
               go index (t:ts) = [
                   Token {
-                        _TType  = _untilType_ additionalPredicateToType t
+                        _TType  = _untilType_ specialSymbolsPredicat t
                       , _TValue = t
                       , _TIndex = index
                   }

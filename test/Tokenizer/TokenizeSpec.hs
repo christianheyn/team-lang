@@ -146,3 +146,11 @@ module Tokenizer.TokenizeSpec where
                 , (T_ClosingRoundBracket, ")",  16)
                 ]
 
+            testTokenize "(var t Boolean true)" [
+                  (T_OpenRoundBracket, "(", 0)
+                , (T_Var, "var", 1)
+                , (T_Symbol, "t", 3)
+                , (T_Type, "Boolean", 5)
+                , (T_BooleanTrue, "true", 7)
+                , (T_ClosingRoundBracket, ")", 8)
+                ]
