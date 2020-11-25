@@ -5,6 +5,7 @@
 
 module Syntax (
       isParamterList
+    , isList
     , AST_NODE(..)
     ) where
 
@@ -19,8 +20,9 @@ module Syntax (
     import Data.Maybe (isJust, fromJust)
     import Control.Lens
 
-    data AST_NODE =
+    data AST_NODE = -- TODO Record syntax
           AstPrimitiv      [Token] [AST_NODE]
+        | AstSymbol        [Token] [AST_NODE]
         | AstParameter     [Token] [AST_NODE]
         | AstParameterList [Token] [AST_NODE]
         | AstLambda        [Token] [AST_NODE]
@@ -37,10 +39,24 @@ module Syntax (
 
     checkEnd ts = ([AstError ts []] , [])
 
+
     _isPrimitive :: Check
     _isPrimitive []           = checkEnd []
-    _isPrimitive allTs@(t:ts) = if (_TType t `elem` [T_String, T_Number, T_BooleanTrue, T_BooleanFalse, T_Lens])
-                  then ([AstPrimitiv [t] []], ts)
+    _isPrimitive allTs@(t:ts) = if (_TType t `elem` [
+                                                      T_String
+                                                    , T_Number
+                                                    , T_ComplexNumber
+                                                    , T_BooleanTrue
+                                                    , T_BooleanFalse
+                                                    ]
+                                )
+                                then ([AstPrimitiv [t] []], ts)
+                                else checkEnd [t]
+
+    _isSymbol :: Check
+    _isSymbol []           = checkEnd []
+    _isSymbol allTs@(t:ts) = if (_TType t == T_Symbol)
+                  then ([AstSymbol [t] []], ts)
                   else checkEnd [t]
 
     _isParameter :: Check
@@ -61,12 +77,36 @@ module Syntax (
                   then ([AstIgnore [t] []], ts)
                   else checkEnd [t]
 
-    -- roundGroup [Check] -> Check
+    _isOpenSquare :: Check
+    _isOpenSquare []           = checkEnd []
+    _isOpenSquare allTs@(t:ts) = if (_TType t == T_OpenSquareBracket)
+                  then ([AstIgnore [t] []], ts)
+                  else checkEnd [t]
+
+    _isClosingSquare :: Check
+    _isClosingSquare []           = checkEnd []
+    _isClosingSquare allTs@(t:ts) = if (_TType t == T_ClosingSquareBracket)
+                  then ([AstIgnore [t] []], ts)
+                  else checkEnd [t]
+
+    childNodes (AstPrimitiv      _ ns) = ns
+    childNodes (AstSymbol        _ ns) = ns
+    childNodes (AstParameter     _ ns) = ns
+    childNodes (AstParameterList _ ns) = ns
+    childNodes (AstLambda        _ ns) = ns
+    childNodes (AstFunction      _ ns) = ns
+    childNodes (AstFunctionCall  _ ns) = ns
+    childNodes (AstFunCall       _ ns) = ns
+    childNodes (AstList          _ ns) = ns
+    childNodes (AstIgnore        _ ns) = ns
+    childNodes (AstError         _ ns) = ns
+
+    hasAstError [] = False
+    hasAstError as = or (map go as)
+        where go (AstError _ _) = True
+              go ns = hasAstError (childNodes ns)
 
     -- QUANTIFIER =============================================================
-    hasAstError ast = or (map go ast)
-        where go (AstError _ _) = True
-              go _              = False
 
     qZeroOrMore' :: [Check] -> [Token] -> ([AST_NODE], [Token])
     qZeroOrMore' _      []     = ([], [])
@@ -94,13 +134,31 @@ module Syntax (
     qExact :: [Check] -> Check
     qExact checks = qExact' checks
 
+    -- END QUANTIFIER ========================================================
+
+    withRoundGroup :: [Check] -> [Token] -> ([AST_NODE], [Token])
+    withRoundGroup checks tokens = if hasError
+                                   then (nodes, [])
+                                   else ([astResult], restTokens)
+        where (nodes, restTokens) = qExact ([_isOpenRound] ++ checks ++ [_isClosingRound]) tokens
+              innerNodes = (init . tail) nodes
+              hasError = hasAstError nodes
+              astResult = AstParameterList [] innerNodes
+
+    withSquareGroup :: [Check] -> [Token] -> ([AST_NODE], [Token])
+    withSquareGroup checks tokens = if hasError
+                                   then (nodes, [])
+                                   else ([astResult], restTokens)
+        where (nodes, restTokens) = qExact ([ _isOpenSquare] ++ checks ++ [_isClosingSquare]) tokens
+              innerNodes = (init . tail) nodes
+              hasError = hasAstError nodes
+              astResult = AstList [] innerNodes
+
     isParamterList :: Check
-    isParamterList =
-        qExact [
-             _isOpenRound
-            , qZeroOrMore [ _isParameter, _isPrimitive, isParamterList ]
-            , _isClosingRound
-            ]
+    isParamterList = withRoundGroup [qZeroOrMore [ _isParameter, isParamterList ]]
+
+    isList :: Check
+    isList = withSquareGroup [qZeroOrMore [isList, _isSymbol, _isPrimitive]]
 
     -- isOr        :: [Check] -> Check
     -- isOneOrMore :: [Check] -> Check

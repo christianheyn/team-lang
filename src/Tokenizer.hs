@@ -168,6 +168,7 @@ module Tokenizer (
         | T_Lens
         | T_Type
         | T_Number
+        | T_ComplexNumber -- TODO
         | T_String
         | T_BooleanTrue
         | T_BooleanFalse
