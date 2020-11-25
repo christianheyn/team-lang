@@ -1,11 +1,13 @@
 import a b c "./utils.team"
 importAs tdd "./tdd.team"
 
+exportAll tdd
+
 export (type MyType [a: Number b: String c: Bool])
 
 (alias AType MyType)
 
-export feature {main #@
+export feature {main
     ([String] {(& String TEST) String} [a: Numbe, b: String, c: tdd.Type]})
     (args f)
     (do
