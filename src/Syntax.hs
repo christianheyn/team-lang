@@ -155,8 +155,6 @@ module Syntax (
         where go (AstError _ _) = True
               go ns = hasAstError (childNodes ns)
 
-
-
     withRoundGroup :: [Check] -> [Token] -> ([AST_NODE], [Token])
     withRoundGroup checks tokens = if hasError
                                    then (nodes, [])

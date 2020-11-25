@@ -52,6 +52,10 @@ multiline strings")
 (lens a
     b: 0 d:)
 
+export (enum Hello , :hi = 1 :moin = 2 :hello = 3)
+
+somethingImported.Hello:hi
+
 (map add [1 2 3 4 5])           # -> [2 3 4 5 6]
 (map {(x) (+ x 1)} [1 2 3 4 5]) # -> [2 3 4 5 6]
 (map (+ 1) [1 2 3 4 5])         # -> [2 3 4 5 6]
@@ -63,9 +67,10 @@ test {() ()}
     else c)
 
 {add
-    <N = Number, M = String> N -> N => N
+    <N = Number> N -> N => N
     (x = 3 ; y = a)
     (+ x y)
+    catch (err) (throw AddError)
 }
 
 {add
