@@ -15,7 +15,7 @@ module Syntax (
         )
     import GHC.Generics
     import Data.Data (Typeable)
-    import Data.List (find, null)
+    import Data.List (find, null, or)
     import Data.Maybe (isJust, fromJust)
     import Control.Lens
 
@@ -35,34 +35,36 @@ module Syntax (
 
     type Check = ([Token] -> ([AST_NODE], [Token]))
 
-    checkEnd ts = ([] , [])
+    checkEnd ts = ([AstError ts []] , [])
 
     _isPrimitive :: Check
-    _isPrimitive []     = checkEnd []
+    _isPrimitive []           = checkEnd []
     _isPrimitive allTs@(t:ts) = if (_TType t `elem` [T_String, T_Number, T_BooleanTrue, T_BooleanFalse, T_Lens])
                   then ([AstPrimitiv [t] []], ts)
-                  else ([] , allTs)
+                  else checkEnd [t]
 
     _isParameter :: Check
-    _isParameter []     = checkEnd []
+    _isParameter []           = checkEnd []
     _isParameter allTs@(t:ts) = if (_TType t `elem` [T_Symbol, T_NamedParameter])
                   then ([AstParameter [t] []], ts)
-                  else ([] , allTs)
+                  else checkEnd [t]
 
     _isOpenRound :: Check
-    _isOpenRound []     = checkEnd []
+    _isOpenRound []           = checkEnd []
     _isOpenRound allTs@(t:ts) = if (_TType t == T_OpenRoundBracket)
                   then ([AstIgnore [t] []], ts)
-                  else ([] , allTs)
+                  else checkEnd [t]
 
     _isClosingRound :: Check
-    _isClosingRound []     = checkEnd []
+    _isClosingRound []           = checkEnd []
     _isClosingRound allTs@(t:ts) = if (_TType t == T_ClosingRoundBracket)
                   then ([AstIgnore [t] []], ts)
-                  else ([] , allTs)
+                  else checkEnd [t]
 
-    matches [] = False
-    matches _  = True
+    -- QUANTIFIER =============================================================
+    hasAstError ast = or (map go ast)
+        where go (AstError _ _) = True
+              go _              = False
 
     isZeroOrMore' :: [Check] -> [Token] -> ([AST_NODE], [Token])
     isZeroOrMore' _      []     = ([], [])
@@ -70,7 +72,7 @@ module Syntax (
                                   then (astNodes ++ nextAstNodes, finalTokens)
                                   else ([], tokens)
         where results = map (\c -> c tokens) checks -- mapUntil
-              notEmpty (a, _) = (not . null) a
+              notEmpty (a, _) = ((not . null) a) && ((not . hasAstError) a)
               match    = find notEmpty results
               (astNodes, nextTokens) = fromJust match
               (nextAstNodes, finalTokens) = isZeroOrMore' checks nextTokens
@@ -78,12 +80,30 @@ module Syntax (
     isZeroOrMore :: [Check] -> Check
     isZeroOrMore checks = isZeroOrMore' checks
 
-    isParamterList :: Check
-    isParamterList ts =
-        isZeroOrMore [_isOpenRound, _isParameter, _isClosingRound] ts
 
-    -- isExact     :: [Check] -> Check
+
+    isExact' :: [Check] -> [Token] -> ([AST_NODE], [Token]) --ASTERROR
+    isExact' []     ts     = ([], ts)
+    isExact' _      []     = ([], [])
+    isExact' (c:cs) tokens = if (hasAstError ast)
+                             then (ast, restTokens)
+                             else (ast ++ nextAst, nextRestTokens)
+        where (ast, restTokens) = c tokens
+              (nextAst, nextRestTokens) = isExact' cs restTokens
+
+    isExact :: [Check] -> Check
+    isExact checks = isExact' checks
+
+    isParamterList :: Check
+    isParamterList =
+        isExact [
+             _isOpenRound
+            , isZeroOrMore [ _isParameter, _isPrimitive, isParamterList ]
+            , _isClosingRound
+            ]
+
+
+
     -- isOr        :: [Check] -> Check
-    -- isZeroOrOne :: [Check] -> Check
     -- isOneOrMore :: [Check] -> Check
     -- isZeroOrMore :: [Check] -> Check

@@ -12,6 +12,6 @@ module ASTSpec where
     spec = do
         describe "Syntax" $ do
             it "try" $ do
-                let actual = isParamterList $ generateTokens "(a, b)"
+                let actual = isParamterList $ generateTokens "((a, b))"
                     expected = ([], [])
                 actual `shouldBe` expected
