@@ -61,49 +61,46 @@ module Syntax (
                   then ([AstIgnore [t] []], ts)
                   else checkEnd [t]
 
+    -- roundGroup [Check] -> Check
+
     -- QUANTIFIER =============================================================
     hasAstError ast = or (map go ast)
         where go (AstError _ _) = True
               go _              = False
 
-    isZeroOrMore' :: [Check] -> [Token] -> ([AST_NODE], [Token])
-    isZeroOrMore' _      []     = ([], [])
-    isZeroOrMore' checks tokens = if isJust match
+    qZeroOrMore' :: [Check] -> [Token] -> ([AST_NODE], [Token])
+    qZeroOrMore' _      []     = ([], [])
+    qZeroOrMore' checks tokens = if isJust match
                                   then (astNodes ++ nextAstNodes, finalTokens)
                                   else ([], tokens)
         where results = map (\c -> c tokens) checks -- mapUntil
               notEmpty (a, _) = ((not . null) a) && ((not . hasAstError) a)
               match    = find notEmpty results
               (astNodes, nextTokens) = fromJust match
-              (nextAstNodes, finalTokens) = isZeroOrMore' checks nextTokens
+              (nextAstNodes, finalTokens) = qZeroOrMore' checks nextTokens
 
-    isZeroOrMore :: [Check] -> Check
-    isZeroOrMore checks = isZeroOrMore' checks
+    qZeroOrMore :: [Check] -> Check
+    qZeroOrMore checks = qZeroOrMore' checks
 
-
-
-    isExact' :: [Check] -> [Token] -> ([AST_NODE], [Token]) --ASTERROR
-    isExact' []     ts     = ([], ts)
-    isExact' _      []     = ([], [])
-    isExact' (c:cs) tokens = if (hasAstError ast)
+    qExact' :: [Check] -> [Token] -> ([AST_NODE], [Token])
+    qExact' []     ts     = ([], ts)
+    qExact' _      []     = ([], [])
+    qExact' (c:cs) tokens = if (hasAstError ast)
                              then (ast, restTokens)
                              else (ast ++ nextAst, nextRestTokens)
         where (ast, restTokens) = c tokens
-              (nextAst, nextRestTokens) = isExact' cs restTokens
+              (nextAst, nextRestTokens) = qExact' cs restTokens
 
-    isExact :: [Check] -> Check
-    isExact checks = isExact' checks
+    qExact :: [Check] -> Check
+    qExact checks = qExact' checks
 
     isParamterList :: Check
     isParamterList =
-        isExact [
+        qExact [
              _isOpenRound
-            , isZeroOrMore [ _isParameter, _isPrimitive, isParamterList ]
+            , qZeroOrMore [ _isParameter, _isPrimitive, isParamterList ]
             , _isClosingRound
             ]
 
-
-
     -- isOr        :: [Check] -> Check
     -- isOneOrMore :: [Check] -> Check
-    -- isZeroOrMore :: [Check] -> Check
