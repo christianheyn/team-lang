@@ -350,7 +350,6 @@ module Tokenizer (
     generateTokens = (filter onlyExecutable) . generateAllTokens
         where onlyExecutable t = and [
                   _TType t /= T_Space
-                , _TType t /= T_Semicolon
                 , _TType t /= T_Newline
                 , _TType t /= T_Comment
                 , _TType t /= T_Separator
