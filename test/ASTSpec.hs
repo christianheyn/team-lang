@@ -42,3 +42,46 @@ module ASTSpec where
                         []
                         )
                 actual `shouldBe` expected
+
+            it "Function: \"{fn () 3}\"" $ do
+                let actual = isFunction $ generateTokens "{fn () 3}"
+                    expected = (
+                        [
+                            AST_NODE {_astNodeType = AstFunction, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstSymbol, _astTokens = [Token {_TType = T_Symbol, _TValue = "fn", _TIndex = 1}], _astChildren = []}
+                                ,AST_NODE {_astNodeType = AstParameterList, _astTokens = [], _astChildren = []}
+                                ,AST_NODE {_astNodeType = AstPrimitiv, _astTokens = [Token {_TType = T_Number, _TValue = "3", _TIndex = 6}], _astChildren = []}
+                                ]}
+                            ],
+                            []
+                        )
+                actual `shouldBe` expected
+
+            it "Function: \"{fn () a}\"" $ do
+                let actual = isFunction $ generateTokens "{fn () a}"
+                    expected = (
+                        [
+                            AST_NODE {_astNodeType = AstFunction, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstSymbol, _astTokens = [Token {_TType = T_Symbol, _TValue = "fn", _TIndex = 1}], _astChildren = []}
+                                ,AST_NODE {_astNodeType = AstParameterList, _astTokens = [], _astChildren = []}
+                                ,AST_NODE {_astNodeType = AstSymbol, _astTokens = [Token {_TType = T_Symbol, _TValue = "a", _TIndex = 6}], _astChildren = []}
+                            ]}
+                        ],
+                        [])
+                actual `shouldBe` expected
+
+            it "Function: \"{fn () (a)}\"" $ do
+                let actual = isFunction $ generateTokens "{fn () (a)}"
+                    expected = (
+                        [
+                            AST_NODE {_astNodeType = AstFunction, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstSymbol, _astTokens = [Token {_TType = T_Symbol, _TValue = "fn", _TIndex = 1}], _astChildren = []}
+                                ,AST_NODE {_astNodeType = AstParameterList, _astTokens = [], _astChildren = []}
+                                ,AST_NODE {_astNodeType = AstFunctionCall, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstSymbol, _astTokens = [Token {_TType = T_Symbol, _TValue = "a", _TIndex = 7}], _astChildren = []}
+                                ]}
+                            ]}
+                        ],
+                        [])
+
+                actual `shouldBe` expected

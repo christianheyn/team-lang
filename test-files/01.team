@@ -67,10 +67,12 @@ test {() ()}
     else c)
 
 {add
-    <N = Number> N -> N => N
+    <N = Number>
+    <T>
+    N -> T => N
     (x = 3 ; y = a)
     (+ x y)
-    catch (err) (throw AddError)
+    catch (err) (...)
 }
 
 {add

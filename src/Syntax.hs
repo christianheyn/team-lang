@@ -5,6 +5,7 @@
 
 module Syntax (
       isParamterList
+    , isFunction
     , isList
     , AST_NODE_TYPE(..)
     , AST_NODE(..)
@@ -86,13 +87,24 @@ module Syntax (
     qExact' []     ts     = ([], ts)
     qExact' _      []     = ([], [])
     qExact' (c:cs) tokens = if (hasAstError ast)
-                             then (ast, restTokens)
-                             else (ast ++ nextAst, nextRestTokens)
+                            then (ast, restTokens)
+                            else (ast ++ nextAst, nextRestTokens)
         where (ast, restTokens) = c tokens
               (nextAst, nextRestTokens) = qExact' cs restTokens
 
     qExact :: [Check] -> Check
     qExact checks = qExact' checks
+
+    qOr' :: [Check] -> [Token] -> ([AST_NODE], [Token])
+    qOr' []     ts     = ([createAstNode AstError [] []], ts)
+    qOr' _      []     = ([], [])
+    qOr' (c:cs) tokens = if (hasAstError ast)
+                         then qOr' cs tokens
+                         else (ast, restTokens)
+        where (ast, restTokens) = c tokens
+
+    qOr :: [Check] -> Check
+    qOr checks = qOr' checks
 
     -- END QUANTIFIER ========================================================
 
@@ -106,6 +118,7 @@ module Syntax (
                                                     , T_ComplexNumber
                                                     , T_BooleanTrue
                                                     , T_BooleanFalse
+                                                    -- , T_VOID
                                                     ]
                                 )
                                 then ([createAstNode AstPrimitiv [t] []], ts)
@@ -147,20 +160,32 @@ module Syntax (
                   then ([createAstNode AstClose [t] []], ts)
                   else checkEnd [t]
 
+    _isOpenCurly :: Check
+    _isOpenCurly []           = checkEnd []
+    _isOpenCurly allTs@(t:ts) = if (_TType t == T_OpenCurlyBracket)
+                  then ([createAstNode AstOpen [t] []], ts)
+                  else checkEnd [t]
+
+    _isClosingCurly :: Check
+    _isClosingCurly []           = checkEnd []
+    _isClosingCurly allTs@(t:ts) = if (_TType t == T_ClosingCurlyBracket)
+                  then ([createAstNode AstClose [t] []], ts)
+                  else checkEnd [t]
+
     hasAstError [] = False
     hasAstError as = or (map go as)
         where go a = if _astNodeType a == AstError
                      then True
                      else hasAstError (_astChildren a)
 
-    withRoundGroup :: [Check] -> [Token] -> ([AST_NODE], [Token])
-    withRoundGroup checks tokens = if hasError
+    withRoundGroup :: AST_NODE_TYPE -> [Check] -> [Token] -> ([AST_NODE], [Token])
+    withRoundGroup t checks tokens = if hasError
                                    then (nodes, [])
                                    else ([astResult], restTokens)
         where (nodes, restTokens) = qExact ([_isOpenRound] ++ checks ++ [_isClosingRound]) tokens
               innerNodes = (init . tail) nodes
               hasError = hasAstError nodes
-              astResult = createAstNode AstParameterList [] innerNodes
+              astResult = createAstNode t [] innerNodes
 
     withSquareGroup :: [Check] -> [Token] -> ([AST_NODE], [Token])
     withSquareGroup checks tokens = if hasError
@@ -172,8 +197,29 @@ module Syntax (
               astResult = createAstNode AstList [] innerNodes
 
     isParamterList :: Check
-    isParamterList = withRoundGroup [qZeroOrMore [ _isParameter, isParamterList ]]
+    isParamterList = withRoundGroup AstParameterList [qZeroOrMore [ _isParameter, isParamterList ]]
+
+    isFunctionCall :: Check
+    isFunctionCall = withRoundGroup AstFunctionCall [_isSymbol, qZeroOrMore [ _isSymbol, _isPrimitive, isFunctionCall ]]
 
     isList :: Check
     isList = withSquareGroup [qZeroOrMore [isList, _isSymbol, _isPrimitive]]
 
+    isFunction :: [Token] -> ([AST_NODE], [Token])
+    isFunction tokens = if hasError
+                                   then (nodes, [])
+                                   else ([astResult], restTokens)
+        where (nodes, restTokens) = qExact ([
+                                              _isOpenCurly
+                                            , _isSymbol
+                                            , isParamterList
+                                            , qOr [
+                                                    _isPrimitive
+                                                  , _isSymbol
+                                                  , isFunctionCall
+                                                  -- , isLambda
+                                                  ]
+                                            , _isClosingCurly]) tokens
+              innerNodes = (init . tail) nodes
+              hasError = hasAstError nodes
+              astResult = createAstNode AstFunction [] innerNodes
