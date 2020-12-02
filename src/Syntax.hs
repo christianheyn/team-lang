@@ -73,9 +73,9 @@ module Syntax (
     qOneOrMore' checks tokens = if isJust match
                                   then (astNodes ++ nextAstNodes, finalTokens)
                                   else ([AstError [] []], [])
-        where results = map (\c -> c tokens) checks -- mapUntil
+        where results = map (\c -> c tokens) checks
               notEmpty (a, _) = ((not . null) a) && ((not . hasAstError) a)
-              match    = find notEmpty results
+              match    = find notEmpty results -- TODO: Sort most ast nodes
               (astNodes, nextTokens) = fromJust match
               (nextAstNodes, finalTokens) = qZeroOrMore' checks nextTokens
 

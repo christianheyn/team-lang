@@ -11,12 +11,23 @@ module ASTSpec where
     spec :: Spec
     spec = do
         describe "Syntax" $ do
-            it "Parameter (a, b)" $ do
+            it "Parameter: \"(a, b)\"" $ do
                 let actual = isParamterList $ generateTokens "()"
-                    expected = ([], [])
+                    expected = ([AstParameterList [] []],[])
                 actual `shouldBe` expected
 
-            it "List [1 true false [1 a]]" $ do
+            it "List: \"[1 true false [1 a]]\"" $ do
                 let actual = isList $ generateTokens "[1 [2 [3 true]]]"
-                    expected = ([], [])
+                    expected = (
+                        [AstList [] [
+                            AstPrimitiv [Token {_TType = T_Number, _TValue = "1", _TIndex = 1}] [],
+                            AstList [] [
+                                AstPrimitiv [Token {_TType = T_Number, _TValue = "2", _TIndex = 4}] [],
+                                AstList [] [
+                                    AstPrimitiv [Token {_TType = T_Number, _TValue = "3", _TIndex = 7}] [],
+                                    AstPrimitiv [Token {_TType = T_BooleanTrue, _TValue = "true", _TIndex = 9}] []
+                                    ]
+                                ]
+                            ]
+                        ],[])
                 actual `shouldBe` expected
