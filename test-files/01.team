@@ -52,7 +52,7 @@ multiline strings")
 (lens a
     b: 0 d:)
 
-export (enum Hello , :hi = 1 :moin = 2 :hello = 3)
+export (enum Hello , :hi :moin :hello)
 
 somethingImported.Hello:hi
 

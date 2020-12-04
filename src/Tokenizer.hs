@@ -11,7 +11,8 @@ module Tokenizer (
     , _isUnresolvedNumber
     , _isType
     , _isSymbol
-    , _isLens
+    , _isProp
+    , _isEnumMember
     , _isNamedParameter
     , _isOpenSquareBracket
     , _isClosingSquareBracket
@@ -141,9 +142,13 @@ module Tokenizer (
     _isSymbol "" = False
     _isSymbol x  = _noNewlineStart x && matchRegex "^[-a-z_\\=\\~\\&\\|\\*\\+\\<\\>\\/\\?\\!\\$\\%]+[-a-z_A-Z0-9\\=\\~\\&\\|\\*\\+\\<\\>\\/\\?\\!\\$\\%]*(')*$" x
 
-    _isLens :: L.ByteString -> Bool
-    _isLens "" = False
-    _isLens x  = _noNewlineStart x && matchRegex "^[a-z_]+[-a-z_A-Z0-9]*(\\:){1}$" x
+    _isProp :: L.ByteString -> Bool
+    _isProp "" = False
+    _isProp x  = _noNewlineStart x && matchRegex "^[a-z_]+[-a-z_A-Z0-9]*(\\:){1}$" x
+
+    _isEnumMember :: L.ByteString -> Bool
+    _isEnumMember "" = False
+    _isEnumMember x  = _noNewlineStart x && matchRegex "^(\\:){1}[-a-z_A-Z0-9]*$" x
 
     _isNamedParameter :: L.ByteString -> Bool
     _isNamedParameter "" = False
@@ -165,7 +170,8 @@ module Tokenizer (
 
     data TokenType =
           T_Symbol
-        | T_Lens
+        | T_Prop
+        | T_EnumMember
         | T_Type
         | T_Number
         | T_ComplexNumber -- TODO
@@ -195,8 +201,9 @@ module Tokenizer (
         | T_ImportAs
         | T_Let
         | T_Var
-        | T_LensKeyword
+        | T_PropKeyword
         | T_TypeKeyword
+        | T_EnumKeyword
         | T_TypesKeyword
         | T_Do
         | T_If
@@ -240,8 +247,9 @@ module Tokenizer (
 
         , (_isType,                 T_Type)
         , (_isSymbol,               T_Symbol)
-        , (_isLens,                 T_Lens)
+        , (_isProp,                 T_Prop)
         , (_isNamedParameter,       T_NamedParameter)
+        , (_isEnumMember,           T_EnumMember)
 
         , (_isOpenSquareBracket,    T_OpenSquareBracket)
         , (_isClosingSquareBracket, T_ClosingSquareBracket)
@@ -303,8 +311,9 @@ module Tokenizer (
               ((== "if"), T_If)
             , ((== "let"), T_Let)
             , ((== "var"), T_Var)
-            , ((== "lens"), T_LensKeyword)
+            , ((== "prop"), T_PropKeyword)
             , ((== "type"), T_TypeKeyword)
+            , ((== "enum"), T_EnumKeyword)
             , ((== "types"), T_TypesKeyword)
             , ((== "test"), T_TEST)
             , ((== "export"), T_Export)

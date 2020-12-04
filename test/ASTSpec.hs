@@ -104,3 +104,18 @@ module ASTSpec where
                                 ]}
                             ],[])
                 actual `shouldBe` expected
+
+            it "Enum: \"(enum T :a)\"" $ do
+                let actual = isEnum $ generateTokens "(enum T :a)"
+                    expected = ([
+                                AST_NODE {_astNodeType = AstEnum, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 3}], _astChildren = []},
+                                    AST_NODE {_astNodeType = AstEnumMember, _astTokens = [Token {_TType = T_NamedParameter, _TValue = ":a", _TIndex = 5}], _astChildren = []}
+                                ]}
+                            ],[])
+                actual `shouldBe` expected
+
+            -- it "Enum: \"(enum T)\"" $ do -- TODO: AstError check
+            --     let actual = isEnum $ generateTokens "(enum T)"
+            --         expected = ([],[])
+            --     actual `shouldBe` expected

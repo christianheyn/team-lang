@@ -8,6 +8,7 @@ module Syntax (
     , isFunction
     , isLambda
     , isList
+    , isEnum
     , AST_NODE_TYPE(..)
     , AST_NODE(..)
     ) where
@@ -26,8 +27,11 @@ module Syntax (
     data AST_NODE_TYPE =
           AstPrimitiv
         | AstSymbol
+        | AstTypeSymbol
         | AstParameter
         | AstParameterList
+        | AstEnum
+        | AstEnumMember
         | AstLambda
         | AstFunction
         | AstFunctionBody
@@ -131,6 +135,22 @@ module Syntax (
     _isSymbol allTs@(t:ts) = if (_TType t == T_Symbol)
                   then ([createAstNode AstSymbol [t] []], ts)
                   else checkEnd [t]
+    _isType :: Check
+    _isType []           = checkEnd []
+    _isType allTs@(t:ts) = if (_TType t == T_Type)
+                  then ([createAstNode AstTypeSymbol [t] []], ts)
+                  else checkEnd [t]
+
+    _isEnumMember :: Check
+    _isEnumMember []           = checkEnd []
+    _isEnumMember allTs@(t:ts) = if (_TType t `elem` [T_EnumMember, T_NamedParameter])
+                  then ([createAstNode AstEnumMember [t] []], ts)
+                  else checkEnd [t]
+    _isKeyword :: TokenType -> Check
+    _isKeyword ttype []           = checkEnd []
+    _isKeyword ttype allTs@(t:ts) = if (_TType t == ttype)
+                  then ([], ts)
+                  else checkEnd [t]
 
     _isParameter :: Check
     _isParameter []           = checkEnd []
@@ -207,6 +227,13 @@ module Syntax (
     isList :: Check
     isList = withSquareGroup [qZeroOrMore [isList, _isSymbol, _isPrimitive]]
 
+    isEnum :: Check
+    isEnum = withRoundGroup AstEnum [
+          _isKeyword T_EnumKeyword
+        , _isType
+        , qExact [_isEnumMember]
+        , qZeroOrMore [ _isEnumMember ]
+        ]
 
     isFunctionBody :: Check
     isFunctionBody tokens = if hasAstError nodes
