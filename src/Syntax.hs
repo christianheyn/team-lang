@@ -6,6 +6,7 @@
 module Syntax (
       isParamterList
     , isFunction
+    , isLambda
     , isList
     , AST_NODE_TYPE(..)
     , AST_NODE(..)
@@ -29,6 +30,7 @@ module Syntax (
         | AstParameterList
         | AstLambda
         | AstFunction
+        | AstFunctionBody
         | AstFunctionCall
         | AstFunCall
         | AstList
@@ -200,26 +202,50 @@ module Syntax (
     isParamterList = withRoundGroup AstParameterList [qZeroOrMore [ _isParameter, isParamterList ]]
 
     isFunctionCall :: Check
-    isFunctionCall = withRoundGroup AstFunctionCall [_isSymbol, qZeroOrMore [ _isSymbol, _isPrimitive, isFunctionCall ]]
+    isFunctionCall = withRoundGroup AstFunctionCall [_isSymbol, qZeroOrMore [ _isSymbol, _isPrimitive, isFunctionCall, isLambda ]]
 
     isList :: Check
     isList = withSquareGroup [qZeroOrMore [isList, _isSymbol, _isPrimitive]]
 
+
+    isFunctionBody :: Check
+    isFunctionBody tokens = if hasAstError nodes
+                            then (nodes, [])
+                            else ([astResult], restTokens)
+        where (nodes, restTokens) = check tokens
+              astResult = createAstNode AstFunctionBody [] nodes
+              check = qOr [
+                            _isPrimitive
+                          , _isSymbol
+                          , isFunctionCall
+                          , isLambda
+                          ]
+
+
+    isLambda :: [Token] -> ([AST_NODE], [Token])
+    isLambda tokens = if hasError
+                      then (nodes, [])
+                      else ([astResult], restTokens)
+        where (nodes, restTokens) = qExact ([
+                                              _isOpenCurly
+                                            , isParamterList
+                                            , isFunctionBody
+                                            , _isClosingCurly]) tokens
+              innerNodes = (init . tail) nodes
+              hasError = hasAstError nodes
+              astResult = createAstNode AstLambda [] innerNodes
+
     isFunction :: [Token] -> ([AST_NODE], [Token])
     isFunction tokens = if hasError
-                                   then (nodes, [])
-                                   else ([astResult], restTokens)
+                        then (nodes, [])
+                        else ([astResult], restTokens)
         where (nodes, restTokens) = qExact ([
                                               _isOpenCurly
                                             , _isSymbol
                                             , isParamterList
-                                            , qOr [
-                                                    _isPrimitive
-                                                  , _isSymbol
-                                                  , isFunctionCall
-                                                  -- , isLambda
-                                                  ]
+                                            , isFunctionBody
                                             , _isClosingCurly]) tokens
               innerNodes = (init . tail) nodes
               hasError = hasAstError nodes
               astResult = createAstNode AstFunction [] innerNodes
+
