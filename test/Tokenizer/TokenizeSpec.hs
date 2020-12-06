@@ -108,14 +108,6 @@ module Tokenizer.TokenizeSpec where
                 , (T_ClosingRoundBracket, ")", 16)
                 ]
 
-            testTokenize "(alias Text Sring)" [
-                  (T_OpenRoundBracket, "(", 0)
-                , (T_Alias, "alias", 1)
-                , (T_Type, "Text", 3)
-                , (T_Type, "Sring", 5)
-                , (T_ClosingRoundBracket, ")", 6)
-                ]
-
             testTokenize "(type A [(& String Number)])" [
                   (T_OpenRoundBracket, "(", 0)
                 , (T_TypeKeyword, "type", 1)

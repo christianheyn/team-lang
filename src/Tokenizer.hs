@@ -208,7 +208,6 @@ module Tokenizer (
         | T_Do
         | T_If
         | T_Catch
-        | T_Alias
         | T_TEST
         | T_Parallel
         | T_Concurrent
@@ -320,7 +319,6 @@ module Tokenizer (
             , ((== "import"), T_Import)
             , ((== "importAs"), T_ImportAs)
             , ((== "catch"), T_Catch)
-            , ((== "alias"), T_Alias)
             , ((== "do"), T_Do)
             , ((== "parallel"), T_Parallel)
             , ((== "concurrent"), T_Concurrent)
