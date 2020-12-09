@@ -123,20 +123,21 @@ module Tokenizer.TokenizeSpec where
                 ]
 
             testTokenize "(types (A [String]) (B [Number]))" [
-                  (T_OpenRoundBracket, "(",  0)
-                , (T_Symbol, "types",  1)
-                , (T_OpenRoundBracket, "(",  3)
-                , (T_Type, "A",  4)
-                , (T_OpenSquareBracket, "[",  6)
-                , (T_Type, "String]",  7)
-                , (T_ClosingRoundBracket, ")",  8)
-                , (T_OpenRoundBracket, "(",  10)
-                , (T_Type, "B",  11)
-                , (T_OpenSquareBracket, "[",  13)
-                , (T_Type, "Number]",  14)
-                , (T_ClosingRoundBracket, ")",  15)
-                , (T_ClosingRoundBracket, ")",  16)
-                ]
+                (T_OpenRoundBracket, "(", 0),
+                (T_Symbol, "types", 1),
+                (T_OpenRoundBracket, "(", 3),
+                (T_Type, "A", 4),
+                (T_OpenSquareBracket, "[", 6),
+                (T_Type, "String", 7),
+                (T_ClosingSquareBracket, "]", 8),
+                (T_ClosingRoundBracket, ")", 9),
+                (T_OpenRoundBracket, "(", 11),
+                (T_Type, "B", 12),
+                (T_OpenSquareBracket, "[", 14),
+                (T_Type, "Number", 15),
+                (T_ClosingSquareBracket, "]", 16),
+                (T_ClosingRoundBracket, ")", 17),
+                (T_ClosingRoundBracket, ")", 18)]
 
             testTokenize "(var t Boolean true)" [
                   (T_OpenRoundBracket, "(", 0)

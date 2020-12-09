@@ -106,7 +106,7 @@ module Tokenizer (
 
     _isType :: L.ByteString -> Bool
     _isType "" = False
-    _isType x  = _noNewlineStart x && matchRegex "^([A-Z]{1})([0-9A-za-z_]*)$" x
+    _isType x  = _noNewlineStart x && matchRegex "^([A-Z]{1})([0-9A-Za-z_])*$" x
 
     _isOpenSquareBracket :: L.ByteString -> Bool
     _isOpenSquareBracket "[" = True

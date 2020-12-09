@@ -143,6 +143,54 @@ module ASTSpec where
                         ],[])
                 actual `shouldBe` expected
 
+            it "TYPEDEFINITION: \"<U> {T -> U} -> V\"" $ do
+                let actual = isTypeDefinition $ generateTokens "<U> {T -> U} -> V"
+                    expected = ([
+                        AST_NODE {_astNodeType = AstTemplateType, _astTokens = [], _astChildren = [
+                            AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "U", _TIndex = 1}], _astChildren = []}]},
+                        AST_NODE {_astNodeType = AstFunctionType, _astTokens = [], _astChildren = [
+                            AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 5}], _astChildren = []},
+                            AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "U", _TIndex = 9}], _astChildren = []}]},
+                        AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "V", _TIndex = 14}], _astChildren = []}
+                        ],
+                        [])
+
+                actual `shouldBe` expected
+
+            it "TYPEDEFINITION: \"[T] -> T\"" $ do
+                let actual = isTypeDefinition $ generateTokens "[T] -> T"
+                    expected = ([
+                            AST_NODE {_astNodeType = AstListType, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 1}], _astChildren = []}
+                            ]},
+                            AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 6}], _astChildren = []}
+                        ],[])
+                actual `shouldBe` expected
+
+            it "TYPEDEFINITION: \"T\"" $ do
+                let actual = isTypeDefinition $ generateTokens "T"
+                    expected = ([],[])
+                actual `shouldBe` expected
+
+            it "TYPEDEFINITION: \"[T]\"" $ do
+                let actual = isTypeDefinition $ generateTokens "[T]"
+                    expected = ([],[])
+                actual `shouldBe` expected
+
+            it "TYPEDEFINITION: \"[{T -> [U]}]\"" $ do
+                let actual = isTypeDefinition $ generateTokens "[{T -> [U]}]"
+                    expected = ([
+                            AST_NODE {_astNodeType = AstListType, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstFunctionType, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 2}], _astChildren = []},
+                                    AST_NODE {_astNodeType = AstListType, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "U", _TIndex = 7}], _astChildren = []}
+                                    ]}
+                                ]}
+                            ]}
+                        ],[])
+                actual `shouldBe` expected
+
             it "CLASS: \"class Functor <T> {}\"" $ do
                 let actual = isClass $ generateTokens "class Functor <T> {}"
                     expected = ([
@@ -155,5 +203,11 @@ module ASTSpec where
                             AST_NODE {_astNodeType = AstClose, _astTokens = [Token {_TType = T_ClosingCurlyBracket, _TValue = "}", _TIndex = 9}], _astChildren = []}
                         ]}
                         ],[])
+
+                actual `shouldBe` expected
+
+            it "CLASS: \"class Functor <T> { fmap <U> {T -> U} -> [T] -> [U] }\"" $ do
+                let actual = isClass $ generateTokens "class Functor <T> { fmap <U> {T -> U} -> [T] -> [U] }"
+                    expected = ([],[])
 
                 actual `shouldBe` expected

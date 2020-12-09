@@ -30,9 +30,12 @@ module Syntax (
     data AST_NODE_TYPE =
           AstPrimitiv      -- 3 , "string", true
         | AstSymbol        -- a
+        | AstTypeDefinition -- <T> <U> T -> {T -> [U]}
         | AstTypeSymbol    -- T
         | AstTemplateType  -- <T>
         | AstFunctionType  -- {T -> U}
+        | AstListType      -- [T]
+        | AstClassFunction -- fmap <U> {T -> U} -> [T] -> [U]
         | AstClass         -- class Functor <T> { fmap <U> {T -> U} -> [T] -> [U] }
         | AstParameter     -- a
         | AstParameterList -- (a b)
@@ -224,14 +227,14 @@ module Syntax (
               hasError = hasAstError nodes
               astResult = createAstNode t [] innerNodes
 
-    withSquareGroup :: [AstFn] -> [Token] -> ([AST_NODE], [Token])
-    withSquareGroup checks tokens = if hasError
+    withSquareGroup :: AST_NODE_TYPE -> [AstFn] -> [Token] -> ([AST_NODE], [Token])
+    withSquareGroup astType checks tokens = if hasError
                                    then (nodes, [])
                                    else ([astResult], restTokens)
         where (nodes, restTokens) = qExact ([ _isOpenSquare] ++ checks ++ [_isClosingSquare]) tokens
               innerNodes = (init . tail) nodes
               hasError = hasAstError nodes
-              astResult = createAstNode AstList [] innerNodes
+              astResult = createAstNode astType [] innerNodes
 
     isParamterList :: AstFn
     isParamterList = withRoundGroup AstParameterList [qZeroOrMore [ _isParameter, isParamterList ]]
@@ -240,7 +243,7 @@ module Syntax (
     isFunctionCall = withRoundGroup AstFunctionCall [_isSymbol, qZeroOrMore [ _isSymbol, _isPrimitive, isFunctionCall, isLambda ]]
 
     isList :: AstFn
-    isList = withSquareGroup [qZeroOrMore [isList, _isSymbol, _isPrimitive]]
+    isList = withSquareGroup AstList [qZeroOrMore [isList, _isSymbol, _isPrimitive]]
 
     isEnum :: AstFn
     isEnum = withRoundGroup AstEnum [
@@ -311,30 +314,52 @@ module Syntax (
               hasError = hasAstError nodes
               astResult = createAstNode AstTemplateType [] innerNodes
 
-    isArrow :: AstFn -- T -> U -> U
-    isArrow = qExact [
-        qOneOrMore [
+
+    isListType :: AstFn
+    isListType tokens = if hasError
+                        then (nodes, [])
+                        else ([astResult], restTokens)
+        where (nodes, restTokens) = qExact [
+                      _isOpenSquare
+                    , qOr [_isType, isFunctionTypeDef, isListType]
+                    , _isClosingSquare]
+                     tokens
+              innerNodes = (init . tail) nodes
+              hasError = hasAstError nodes
+              astResult = createAstNode AstListType [] innerNodes
+
+    isArrowTypes :: AstFn -- T -> U -> U
+    isArrowTypes = qExact [
+        qZeroOrMore [
             qExact [
-                qOr [_isType, isFunctionTypeDef]
+                qOr [_isType, isFunctionTypeDef, isListType]
                 , _hasTokenType T_ArrowLeft
                 ]
             ]
-            , qOr [_isType, isFunctionTypeDef]
+            , qOr [_isType, isFunctionTypeDef, isListType]
         ]
 
-    isFunctionTypeDef :: AstFn -- {T -> U -> U}
-    isFunctionTypeDef = withCurlyGroup AstFunctionType [
-          qZeroOrMore [isTemplateType]
-        , qOneOrMore [isArrow]
-        ]
+    isFunctionTypeDef :: AstFn -- {T -> {T -> U} -> U}
+    isFunctionTypeDef = withCurlyGroup AstFunctionType [isArrowTypes]
 
-    isTypeDefinition :: AstFn -- <T> <U> {T -> U} -> U
-    isTypeDefinition = qExact [
-          qZeroOrMore [isTemplateType] -- <T> <U>
-        , qOneOrMore [
-            _isType, -- T
-            isFunctionTypeDef] -- {T -> U}
-        ]
+    isTypeDefinition :: AstFn
+    isTypeDefinition tokens = if hasError
+                              then (nodes, [])
+                              else ([astResult], restTokens)
+        where (nodes, restTokens) = qExact [
+                                        qZeroOrMore [isTemplateType]
+                                        , isArrowTypes
+                                        ] tokens
+              hasError = hasAstError nodes
+              astResult = createAstNode AstTypeDefinition [] nodes
+
+    isClassFunction :: AstFn
+    isClassFunction tokens = if hasError
+                             then (nodes, [])
+                             else ([astResult], restTokens)
+        where (nodes, restTokens) = qExact [_isSymbol, isTypeDefinition] tokens
+              hasError = hasAstError nodes
+              astResult = createAstNode AstClassFunction [] nodes
 
     isClass :: AstFn
     isClass tokens = if hasError
@@ -345,9 +370,10 @@ module Syntax (
                                             , _isType
                                             , isTemplateType
                                             , _isOpenCurly
-                                            , qZeroOrMore [
-                                                qExact [_isSymbol, isTypeDefinition]
-                                                ]
+                                            , qZeroOrMore [isClassFunction]
                                             , _isClosingCurly]) tokens
               hasError = hasAstError nodes
               astResult = createAstNode AstClass [] nodes
+
+
+ -- [a: Numbe, b: String, c: imported.Type]
