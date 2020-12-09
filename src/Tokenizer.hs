@@ -140,7 +140,10 @@ module Tokenizer (
 
     _isSymbol :: L.ByteString -> Bool
     _isSymbol "" = False
-    _isSymbol x  = _noNewlineStart x && matchRegex "^[-a-z_\\=\\~\\&\\|\\*\\+\\<\\>\\/\\?\\!\\$\\%]+[-a-z_A-Z0-9\\=\\~\\&\\|\\*\\+\\<\\>\\/\\?\\!\\$\\%]*(')*$" x
+    _isSymbol x  = _noNewlineStart x && matchRegex ("^(" <> reg1 <> "|" <> reg2 <> ")(')*$") x
+        where reg1 = "([-a-z_\\=\\~\\&\\|\\*\\+\\<\\>\\/\\?\\!\\$\\%]+[-a-z_0-9\\=\\~\\&\\|\\*\\+\\<\\>\\/\\?\\!\\$\\%]*)"
+              reg2 = "([-a-z_]+[-a-z_A-Z0-9]*)"
+
 
     _isProp :: L.ByteString -> Bool
     _isProp "" = False
@@ -203,14 +206,15 @@ module Tokenizer (
         | T_Var
         | T_PropKeyword
         | T_TypeKeyword
+        | T_ClassKeyword
         | T_EnumKeyword
-        | T_TypesKeyword
         | T_Do
         | T_If
         | T_Catch
         | T_TEST
         | T_Parallel
         | T_Concurrent
+        | T_ArrowLeft
 
         | T_FlagFeature
         | T_FlagProject
@@ -312,8 +316,8 @@ module Tokenizer (
             , ((== "var"), T_Var)
             , ((== "prop"), T_PropKeyword)
             , ((== "type"), T_TypeKeyword)
+            , ((== "class"), T_ClassKeyword)
             , ((== "enum"), T_EnumKeyword)
-            , ((== "types"), T_TypesKeyword)
             , ((== "test"), T_TEST)
             , ((== "export"), T_Export)
             , ((== "import"), T_Import)
@@ -324,6 +328,7 @@ module Tokenizer (
             , ((== "concurrent"), T_Concurrent)
             , ((== "true"), T_BooleanTrue)
             , ((== "false"), T_BooleanFalse)
+            , ((== "->"), T_ArrowLeft)
             , ((== "feature"), T_FlagFeature)
             , ((== "project"), T_FlagProject)
             , ((== "hotfix"), T_FlagHotfix)

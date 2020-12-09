@@ -119,3 +119,41 @@ module ASTSpec where
             --     let actual = isEnum $ generateTokens "(enum T)"
             --         expected = ([],[])
             --     actual `shouldBe` expected
+
+            it "TEMPLATE TYPE: \"<T>\"" $ do
+                let actual = isTemplateType $ generateTokens "<T>"
+                    expected = ([AST_NODE {_astNodeType = AstTemplateType, _astTokens = [], _astChildren = [AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 1}], _astChildren = []}]}],[])
+                actual `shouldBe` expected
+
+            -- it "CLASS: \"class Functor <T> { fmap  <U> {T -> U} -> [T] -> [U] }\"" $ do -- TODO: AstError check
+            --     let actual = isClass $ generateTokens "class Functor <T> { fmap <U> {T -> U} -> [T] -> [U] }"
+            --         expected = ([],[])
+            --     actual `shouldBe` expected
+
+            it "TYPEDEFINITION: \"<U> {T -> U}\"" $ do
+                let actual = isTypeDefinition $ generateTokens "<U> {T -> U}"
+                    expected = ([
+                        AST_NODE {_astNodeType = AstTemplateType, _astTokens = [], _astChildren = [
+                            AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "U", _TIndex = 1}], _astChildren = []}
+                        ]},
+                        AST_NODE {_astNodeType = AstFunctionType, _astTokens = [], _astChildren = [
+                            AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 5}], _astChildren = []},
+                            AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "U", _TIndex = 9}], _astChildren = []}
+                        ]}
+                        ],[])
+                actual `shouldBe` expected
+
+            it "CLASS: \"class Functor <T> {}\"" $ do
+                let actual = isClass $ generateTokens "class Functor <T> {}"
+                    expected = ([
+                        AST_NODE {_astNodeType = AstClass, _astTokens = [], _astChildren = [
+                            AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "Functor", _TIndex = 2}], _astChildren = []},
+                            AST_NODE {_astNodeType = AstTemplateType, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 5}], _astChildren = []}
+                            ]},
+                            AST_NODE {_astNodeType = AstOpen, _astTokens = [Token {_TType = T_OpenCurlyBracket, _TValue = "{", _TIndex = 8}], _astChildren = []},
+                            AST_NODE {_astNodeType = AstClose, _astTokens = [Token {_TType = T_ClosingCurlyBracket, _TValue = "}", _TIndex = 9}], _astChildren = []}
+                        ]}
+                        ],[])
+
+                actual `shouldBe` expected

@@ -94,11 +94,11 @@ export add
        T -> U -> Number
 }
 
-class @Functor <T> {
-    fmap :: <U> {T -> U} -> [T] -> [U]
+class Functor <T> {
+    fmap <U> {T -> U} -> [T] -> [U]
 }
 
-export instance @Functor Number {
+export instance Functor Number {
     {fmap (fn n) (fn n)}
 }
 

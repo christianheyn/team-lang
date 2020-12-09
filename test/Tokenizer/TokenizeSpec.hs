@@ -124,7 +124,7 @@ module Tokenizer.TokenizeSpec where
 
             testTokenize "(types (A [String]) (B [Number]))" [
                   (T_OpenRoundBracket, "(",  0)
-                , (T_TypesKeyword, "types",  1)
+                , (T_Symbol, "types",  1)
                 , (T_OpenRoundBracket, "(",  3)
                 , (T_Type, "A",  4)
                 , (T_OpenSquareBracket, "[",  6)
