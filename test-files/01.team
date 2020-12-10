@@ -104,4 +104,9 @@ export instance Functor Number {
 
 
 Number -> {Maybe -> Number Void}
-(maybe 3)
+
+[a: maybe <T> T -> Number b: Void]
+
+{f
+    <T> maybe Number -> maybe T -> Number
+}

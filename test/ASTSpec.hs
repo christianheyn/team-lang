@@ -223,7 +223,7 @@ module ASTSpec where
 
                 actual `shouldBe` expected
 
-            it "CLASS: \"class Functor <T> { fmap <T> {T -> U} -> T -> U map {T -> U} -> T -> U }\"" $ do
+            it "CLASS: \"class Functor <T> { fmap <T> {T -> U} -> T -> U map  {T -> U} -> T -> U }\"" $ do
                 let actual = isClass $ generateTokens "class Functor <T> { fmap <T> {T -> U} -> T -> U map  {T -> U} -> T -> U }"
                     expected = ([
                         AST_NODE {_astNodeType = AstClass, _astTokens = [], _astChildren = [
@@ -260,3 +260,115 @@ module ASTSpec where
                         }],
                         [])
                 actual `shouldBe` expected
+
+            it "PROPLIST: \"[a: Number b: Number -> Number]\"" $ do
+                let actual = isPropListType $ generateTokens "[a: Number b: Number -> Number]"
+                    expected = ([
+                            AST_NODE {_astNodeType = AstPropListType, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstPropKeyValueType, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstProp, _astTokens = [Token {_TType = T_Prop, _TValue = "a:", _TIndex = 1}], _astChildren = []},
+                                    AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "Number", _TIndex = 3}], _astChildren = []}
+                                    ]}
+                                ]},
+                                AST_NODE {_astNodeType = AstPropKeyValueType, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstProp, _astTokens = [Token {_TType = T_Prop, _TValue = "b:", _TIndex = 5}], _astChildren = []},
+                                    AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "Number", _TIndex = 7}], _astChildren = []},
+                                        AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "Number", _TIndex = 11}], _astChildren = []}
+                                    ]}
+                                ]}
+                            ]}
+                        ],[])
+                actual `shouldBe` expected
+
+            it "TYPEDEFINITION: \"<T> [a: T, b: Void] -> T\"" $ do
+                let actual = isTypeDefinition $ generateTokens "<T> [a: T, b: Void] -> T"
+                    expected = ([
+                            AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstTemplateType, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 1}], _astChildren = []}
+                                ]},
+                                AST_NODE {_astNodeType = AstPropListType, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstPropKeyValueType, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstProp, _astTokens = [Token {_TType = T_Prop, _TValue = "a:", _TIndex = 5}], _astChildren = []},
+                                        AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                            AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 7}], _astChildren = []}
+                                        ]}
+                                    ]},
+                                    AST_NODE {_astNodeType = AstPropKeyValueType, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstProp, _astTokens = [Token {_TType = T_Prop, _TValue = "b:", _TIndex = 10}], _astChildren = []},
+                                        AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                            AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "Void", _TIndex = 12}], _astChildren = []}
+                                        ]}
+                                    ]}
+                                ]},
+                                AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 17}], _astChildren = []}
+                            ]}
+                        ],[])
+                actual `shouldBe` expected
+
+            it "TYPEDEFINITION: \"maybe T\"" $ do
+                let actual = isTypeDefinition $ generateTokens "maybe T"
+                    expected = ([
+                            AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstMaybeType, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 2}], _astChildren = []}
+                                    ]}
+                                ]}
+                            ]}
+                        ],
+                        [])
+                actual `shouldBe` expected
+
+            it "TYPEDEFINITION: \"maybe maybe T\"" $ do
+                let actual = isTypeDefinition $ generateTokens "maybe maybe T"
+                    expected = ([
+                            AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstMaybeType, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstMaybeType, _astTokens = [], _astChildren = [
+                                            AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                                AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 4}], _astChildren = []}
+                                            ]}
+                                        ]}
+                                    ]}
+                                ]}
+                            ]}
+                        ],
+                        [])
+
+                actual `shouldBe` expected
+
+            it "TYPEDEFINITION: \"[a: [a: maybe [Number]]]\"" $ do
+                let actual = isTypeDefinition $ generateTokens "[a: [a: maybe [Number]]]"
+                    expected = ([
+                            AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstPropListType, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstPropKeyValueType, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstProp, _astTokens = [Token {_TType = T_Prop, _TValue = "a:", _TIndex = 1}], _astChildren = []},
+                                        AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                            AST_NODE {_astNodeType = AstPropListType, _astTokens = [], _astChildren = [
+                                                AST_NODE {_astNodeType = AstPropKeyValueType, _astTokens = [], _astChildren = [
+                                                AST_NODE {_astNodeType = AstProp, _astTokens = [Token {_TType = T_Prop, _TValue = "a:", _TIndex = 4}], _astChildren = []},
+                                                    AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                                        AST_NODE {_astNodeType = AstMaybeType, _astTokens = [], _astChildren = [
+                                                            AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                                                AST_NODE {_astNodeType = AstListType, _astTokens = [], _astChildren = [
+                                                                    AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "Number", _TIndex = 9}], _astChildren = []}
+                                                                ]}
+                                                            ]}
+                                                        ]}
+                                                    ]}
+                                                ]}
+                                            ]}
+                                        ]}
+                                    ]}
+                                ]}
+                            ]}
+                        ],
+                        [])
+                actual `shouldBe` expected
+
+

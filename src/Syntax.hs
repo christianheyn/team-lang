@@ -10,11 +10,13 @@ module Syntax (
     , isList
     , isEnum
     , isTemplateType
+    , isPropListType
     , isClass
     , isTypeDefinition
     , AST_NODE_TYPE(..)
     , AST_NODE(..)
     ) where
+
 
     import Tokenizer (
           generateTokens
@@ -28,26 +30,30 @@ module Syntax (
     import Control.Lens
 
     data AST_NODE_TYPE =
-          AstPrimitiv      -- 3 , "string", true
-        | AstSymbol        -- a
-        | AstTypeDefinition -- <T> <U> T -> {T -> [U]}
-        | AstTypeSymbol    -- T
-        | AstTemplateType  -- <T>
-        | AstFunctionType  -- {T -> U}
-        | AstListType      -- [T]
-        | AstClassFunction -- fmap <U> {T -> U} -> [T] -> [U]
-        | AstClass         -- class Functor <T> { fmap <U> {T -> U} -> [T] -> [U] }
-        | AstParameter     -- a
-        | AstParameterList -- (a b)
-        | AstEnum          -- (enum Hallo :hi :hello :huhu)
-        | AstEnumMember    -- :hi
-        | AstLambda        -- {(a) (+ a 1)}
-        | AstFunction      -- {plus1 (a) (+ a 1)}
+          AstPrimitiv         -- 3 , "string", true
+        | AstSymbol           -- a
+        | AstTypeDefinition   -- <T> <U> T -> {T -> [U]}
+        | AstTypeSymbol       -- T
+        | AstTemplateType     -- <T>
+        | AstMaybeType        -- maybe T
+        | AstFunctionType     -- {T -> U}
+        | AstListType         -- [T]
+        | AstClassFunction    -- fmap <U> {T -> U} -> [T] -> [U]
+        | AstClass            -- class Functor <T> { fmap <U> {T -> U} -> [T] -> [U] }
+        | AstProp             -- a:
+        | AstPropKeyValueType -- a: Number
+        | AstPropListType     -- [a: Number]
+        | AstParameter        -- a
+        | AstParameterList    -- (a b)
+        | AstEnum             -- (enum Hallo :hi :hello :huhu)
+        | AstEnumMember       -- :hi
+        | AstLambda           -- {(a) (+ a 1)}
+        | AstFunction         -- {plus1 (a) (+ a 1)}
         | AstFunctionBody
-        | AstFunctionCall  -- (plus1 3)
-        | AstList          -- [1 2 3 (+ 2 5)]
-        | AstOpen          -- ({[
-        | AstClose         -- ]})
+        | AstFunctionCall     -- (plus1 3)
+        | AstList             -- [1 2 3 (+ 2 5)]
+        | AstOpen             -- ({[
+        | AstClose            -- ]})
         | AstError
         deriving (Show, Eq)
 
@@ -155,6 +161,13 @@ module Syntax (
     _isEnumMember allTs@(t:ts) = if (_TType t `elem` [T_EnumMember, T_NamedParameter])
                   then ([createAstNode AstEnumMember [t] []], ts)
                   else checkEnd [t]
+
+    _isProp :: AstFn
+    _isProp []           = checkEnd []
+    _isProp allTs@(t:ts) = if (_TType t `elem` [T_Prop])
+                  then ([createAstNode AstProp [t] []], ts)
+                  else checkEnd [t]
+
     _hasTokenType :: TokenType -> AstFn
     _hasTokenType ttype []           = checkEnd []
     _hasTokenType ttype allTs@(t:ts) = if (_TType t == ttype)
@@ -310,10 +323,16 @@ module Syntax (
                      then (nodes, [])
                      else ([astResult], restTokens)
         where (nodes, restTokens) = qExact [_isOpenXML, _isType, _isClosingXML] tokens
-              innerNodes = nodes
               hasError = hasAstError nodes
-              astResult = createAstNode AstTemplateType [] innerNodes
+              astResult = createAstNode AstTemplateType [] nodes
 
+    isMaybeType :: AstFn
+    isMaybeType tokens = if hasError
+                         then (nodes, [])
+                         else ([astResult], restTokens)
+        where (nodes, restTokens) = qExact [_hasTokenType T_MaybeType, isTypeDefinition] tokens
+              hasError = hasAstError nodes
+              astResult = createAstNode AstMaybeType [] nodes
 
     isListType :: AstFn
     isListType tokens = if hasError
@@ -332,11 +351,11 @@ module Syntax (
     isArrowTypes = qExact [
         qZeroOrMore [
             qExact [
-                qOr [_isType, isFunctionTypeDef, isListType]
+                qOr [_isType, isFunctionTypeDef, isListType, isPropListType, isMaybeType]
                 , _hasTokenType T_ArrowLeft
                 ]
             ]
-            , qOr [_isType, isFunctionTypeDef, isListType]
+            , qOr [_isType, isFunctionTypeDef, isListType, isPropListType, isMaybeType]
         ]
 
     isFunctionTypeDef :: AstFn -- {T -> {T -> U} -> U}
@@ -347,7 +366,7 @@ module Syntax (
                               then (nodes, [])
                               else ([astResult], restTokens)
         where (nodes, restTokens) = qExact [
-                                        qZeroOrMore [isTemplateType]
+                                          qZeroOrMore [isTemplateType]
                                         , isArrowTypes
                                         ] tokens
               hasError = hasAstError nodes
@@ -375,5 +394,13 @@ module Syntax (
               hasError = hasAstError nodes
               astResult = createAstNode AstClass [] nodes
 
+    isPropKeyValueType :: AstFn -- a: Numbe
+    isPropKeyValueType tokens = if hasError
+                                then (nodes, [])
+                                else ([astResult], restTokens)
+        where (nodes, restTokens) = qExact [ _isProp, isTypeDefinition ] tokens
+              hasError = hasAstError nodes
+              astResult = createAstNode AstPropKeyValueType [] nodes
 
- -- [a: Numbe, b: String, c: imported.Type]
+    isPropListType :: AstFn -- [a: Numbe, b: String, c: imported.Type]
+    isPropListType = withSquareGroup AstPropListType [qOneOrMore [isPropKeyValueType]]

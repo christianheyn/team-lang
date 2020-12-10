@@ -176,6 +176,7 @@ module Tokenizer (
         | T_Prop
         | T_EnumMember
         | T_Type
+        | T_MaybeType
         | T_Number
         | T_ComplexNumber -- TODO
         | T_String
@@ -322,6 +323,7 @@ module Tokenizer (
             , ((== "export"), T_Export)
             , ((== "import"), T_Import)
             , ((== "importAs"), T_ImportAs)
+            , ((== "maybe"), T_MaybeType)
             , ((== "catch"), T_Catch)
             , ((== "do"), T_Do)
             , ((== "parallel"), T_Parallel)
