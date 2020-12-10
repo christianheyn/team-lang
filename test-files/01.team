@@ -103,6 +103,5 @@ export instance Functor Number {
 }
 
 
-
 Number -> {Maybe -> Number Void}
 (maybe 3)
