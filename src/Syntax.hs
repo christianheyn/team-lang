@@ -36,7 +36,7 @@ module Syntax (
         | AstTypeDefinition     -- <T> <U> T -> {T -> [U]}
         | AstTypeSymbol         -- T
         | AstImportedTypeSymbol -- tdd.Test
-        | AstRestType           -- ...Test
+        | AstRestType           -- @Test
         | AstTemplateType       -- <T>
         | AstMaybeType          -- maybe T
         | AstFunctionType       -- {T -> U}
@@ -409,23 +409,31 @@ module Syntax (
               hasError = hasAstError nodes
               astResult = createAstNode AstListType [] innerNodes
 
-    isArrowTypes :: AstFn -- T -> ...U -> U
-    isArrowTypes = qExact [
-        qZeroOrMore [
+    isArrowTypes :: AstFn -- T -> @U -> U
+    isArrowTypes = qOr [
             qExact [
-                allTypes
+                _isRestType
                 , _hasTokenType T_ArrowLeft
+                , allTypes
+            ],
+            qExact [
+                qZeroOrMore [
+                    qExact [
+                        allTypes
+                        , _hasTokenType T_ArrowLeft
+                        ]
                 ]
-            ]
-            , qOr [
-                qExact [
-                    _isRestType
-                    , _hasTokenType T_ArrowLeft
+                , qOr [
+                    qExact [
+                        _isRestType
+                        , _hasTokenType T_ArrowLeft
+                        , allTypes
+                    ]
                     , allTypes
                 ]
-                , allTypes
             ]
         ]
+
         where allTypes = qOr [_isType, isFunctionTypeDef, isListType, isPropListType, isMaybeType]
 
     isFunctionTypeDef :: AstFn -- {T -> {T -> U} -> U}

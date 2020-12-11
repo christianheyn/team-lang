@@ -117,3 +117,6 @@ T -> @{T -> T} -> [T]
 {+, @CNumber -> CNumber, (@ns) ()}
 
 {n+cn CNumber -> Number -> CNumber (n cn) (+ (toComplex n) cn)}
+
+
+(fun add2+n+n+n (+ 2 @ @ @))

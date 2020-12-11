@@ -463,6 +463,24 @@ module ASTSpec where
                     expected = True
                 actual `shouldBe` expected
 
+            it "ERROR: TYPEDEFINITION: \"@T\"" $ do
+                let (nodes, restTokens) = isTypeDefinition $ generateTokens "@T"
+                    actual = hasAstError nodes
+                    expected = True
+                restTokens `shouldBe` []
+
+            it "ERROR(REST TOKENS): TYPEDEFINITION: \"T -> @T -> T -> T\"" $ do
+                let (nodes, restTokens) = isTypeDefinition $ generateTokens "T -> @T -> T -> T"
+                    actual = length restTokens == 0
+                    expected = False
+                actual `shouldBe` expected
+
+            it "TYPEDEFINITION: \"@T -> T\"" $ do
+                let (nodes, restTokens) = isTypeDefinition $ generateTokens "@T -> T"
+                    actual = and [(not . hasAstError) nodes, length restTokens == 0]
+                    expected = True
+                actual `shouldBe` expected
+
             it "TYPEDEFINITION: \"[a: imported.Type]\"" $ do
                 let actual = isTypeDefinition $ generateTokens "[a: imported.Type]"
                     expected = ([
