@@ -430,6 +430,39 @@ module ASTSpec where
                         ],[])
                 actual `shouldBe` expected
 
+            it "TYPEDEFINITION: \"[a: maybe T -> Number b: Void]\"" $ do
+                let actual = isTypeDefinition $ generateTokens "[a: maybe T -> Number b: Void]"
+                    expected = ([
+                            AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstPropListType, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstPropKeyValueType, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstProp, _astTokens = [Token {_TType = T_Prop, _TValue = "a:", _TIndex = 1}], _astChildren = []},
+                                        AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                            AST_NODE {_astNodeType = AstMaybeType, _astTokens = [], _astChildren = [
+                                                AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                                    AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 5}], _astChildren = []},
+                                                    AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "Number", _TIndex = 9}], _astChildren = []}
+                                                ]}
+                                            ]}
+                                        ]}
+                                    ]},
+                                    AST_NODE {_astNodeType = AstPropKeyValueType, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstProp, _astTokens = [Token {_TType = T_Prop, _TValue = "b:", _TIndex = 11}], _astChildren = []},
+                                        AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                            AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "Void", _TIndex = 13}], _astChildren = []}
+                                        ]}
+                                    ]}
+                                ]}
+                            ]}
+                        ],[])
+                actual `shouldBe` expected
+
+            it "ERROR: TYPEDEFINITION: \"[a: <T> maybe T -> Number]\"" $ do
+                let (nodes, _) = isTypeDefinition $ generateTokens "[a: <T> maybe T -> Number]"
+                    actual = hasAstError nodes
+                    expected = True
+                actual `shouldBe` expected
+
             it "TYPEDEFINITION: \"[a: imported.Type]\"" $ do
                 let actual = isTypeDefinition $ generateTokens "[a: imported.Type]"
                     expected = ([

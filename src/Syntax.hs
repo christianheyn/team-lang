@@ -13,6 +13,7 @@ module Syntax (
     , isPropListType
     , isClass
     , isTypeDefinition
+    , hasAstError
     , AST_NODE_TYPE(..)
     , AST_NODE(..)
     ) where
@@ -72,6 +73,12 @@ module Syntax (
         , _astTokens   = tokens
         , _astChildren = childrens
         }
+
+    hasAstError [] = False
+    hasAstError as = or (map go as)
+        where go a = if _astNodeType a == AstError
+                     then True
+                     else hasAstError (_astChildren a)
 
     -- QUANTIFIER =============================================================
 
@@ -263,12 +270,6 @@ module Syntax (
         then ([createAstNode AstClose [t] []], ts)
         else checkEnd [t]
 
-    hasAstError [] = False
-    hasAstError as = or (map go as)
-        where go a = if _astNodeType a == AstError
-                     then True
-                     else hasAstError (_astChildren a)
-
     withRoundGroup :: AST_NODE_TYPE -> [AstFn] -> AstFn
     withRoundGroup t checks tokens =
         if hasError
@@ -392,6 +393,7 @@ module Syntax (
         where (nodes, restTokens) = qExact [_hasTokenType T_MaybeType, isTypeDefinition] tokens
               hasError = hasAstError nodes
               astResult = createAstNode AstMaybeType [] nodes
+              -- allTypes = qOr [_isType, isFunctionTypeDef, isListType, isPropListType, isMaybeType]
 
     isListType :: AstFn
     isListType tokens =
@@ -441,6 +443,15 @@ module Syntax (
               hasError = hasAstError nodes
               astResult = createAstNode AstTypeDefinition [] nodes
 
+    isTypeDefinitionWithoutTemplates :: AstFn
+    isTypeDefinitionWithoutTemplates tokens =
+        if hasError
+        then (nodes, [])
+        else ([astResult], restTokens)
+        where (nodes, restTokens) = isArrowTypes tokens
+              hasError = hasAstError nodes
+              astResult = createAstNode AstTypeDefinition [] nodes
+
     isClassFunction :: AstFn
     isClassFunction tokens =
         if hasError
@@ -470,10 +481,9 @@ module Syntax (
         if hasError
         then (nodes, [])
         else ([astResult], restTokens)
-        where (nodes, restTokens) = qExact [ _isProp, isTypeDefinition ] tokens
+        where (nodes, restTokens) = qExact [ _isProp, isTypeDefinitionWithoutTemplates ] tokens
               hasError = hasAstError nodes
               astResult = createAstNode AstPropKeyValueType [] nodes
 
     isPropListType :: AstFn -- [a: Numbe, b: String, c: imported.Type]
     isPropListType = withSquareGroup AstPropListType [qOneOrMore [isPropKeyValueType]]
-
