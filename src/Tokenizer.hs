@@ -15,7 +15,7 @@ module Tokenizer (
     , _isEnumMember
     , _isNamedParameter
     , _isReferenceDot
-    , _isRestDots
+    , _isRestSpread
     , _isOpenSquareBracket
     , _isClosingSquareBracket
     , _isOpenCurlyBracket
@@ -162,9 +162,9 @@ module Tokenizer (
     _isReferenceDot "" = False
     _isReferenceDot x  = _noNewlineStart x && matchRegex "^(\\.){1}$" x
 
-    _isRestDots :: L.ByteString -> Bool
-    _isRestDots "" = False
-    _isRestDots x  = _noNewlineStart x && matchRegex "^(\\.){3}$" x
+    _isRestSpread :: L.ByteString -> Bool
+    _isRestSpread "" = False
+    _isRestSpread x  = _noNewlineStart x && matchRegex "^(\\@){1}$" x
 
     _isNewline :: L.ByteString -> Bool
     _isNewline x  = x == "\n"
@@ -193,7 +193,7 @@ module Tokenizer (
         | T_BooleanFalse
         | T_NamedParameter
         | T_ReferenceDot
-        | T_RestDots
+        | T_RestSpread
 
         | T_OpenSquareBracket
         | T_ClosingSquareBracket
@@ -267,7 +267,7 @@ module Tokenizer (
         , (_isNamedParameter,       T_NamedParameter)
         , (_isEnumMember,           T_EnumMember)
         , (_isReferenceDot,         T_ReferenceDot)
-        , (_isRestDots,             T_RestDots)
+        , (_isRestSpread,           T_RestSpread)
 
         , (_isOpenSquareBracket,    T_OpenSquareBracket)
         , (_isClosingSquareBracket, T_ClosingSquareBracket)

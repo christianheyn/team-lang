@@ -30,31 +30,32 @@ module Syntax (
     import Control.Lens
 
     data AST_NODE_TYPE =
-          AstPrimitiv         -- 3 , "string", true
-        | AstSymbol           -- a
-        | AstTypeDefinition   -- <T> <U> T -> {T -> [U]}
-        | AstTypeSymbol       -- T
+          AstPrimitiv           -- 3 , "string", true
+        | AstSymbol             -- a
+        | AstTypeDefinition     -- <T> <U> T -> {T -> [U]}
+        | AstTypeSymbol         -- T
         | AstImportedTypeSymbol -- tdd.Test
-        | AstTemplateType     -- <T>
-        | AstMaybeType        -- maybe T
-        | AstFunctionType     -- {T -> U}
-        | AstListType         -- [T]
-        | AstClassFunction    -- fmap <U> {T -> U} -> [T] -> [U]
-        | AstClass            -- class Functor <T> { fmap <U> {T -> U} -> [T] -> [U] }
-        | AstProp             -- a:
-        | AstPropKeyValueType -- a: Number
-        | AstPropListType     -- [a: Number]
-        | AstParameter        -- a
-        | AstParameterList    -- (a b)
-        | AstEnum             -- (enum Hallo :hi :hello :huhu)
-        | AstEnumMember       -- :hi
-        | AstLambda           -- {(a) (+ a 1)}
-        | AstFunction         -- {plus1 (a) (+ a 1)}
+        | AstRestType           -- ...Test
+        | AstTemplateType       -- <T>
+        | AstMaybeType          -- maybe T
+        | AstFunctionType       -- {T -> U}
+        | AstListType           -- [T]
+        | AstClassFunction      -- fmap <U> {T -> U} -> [T] -> [U]
+        | AstClass              -- class Functor <T> { fmap <U> {T -> U} -> [T] -> [U] }
+        | AstProp               -- a:
+        | AstPropKeyValueType   -- a: Number
+        | AstPropListType       -- [a: Number]
+        | AstParameter          -- a
+        | AstParameterList      -- (a b)
+        | AstEnum               -- (enum Hallo :hi :hello :huhu)
+        | AstEnumMember         -- :hi
+        | AstLambda             -- {(a) (+ a 1)}
+        | AstFunction           -- {plus1 (a) (+ a 1)}
         | AstFunctionBody
-        | AstFunctionCall     -- (plus1 3)
-        | AstList             -- [1 2 3 (+ 2 5)]
-        | AstOpen             -- ({[
-        | AstClose            -- ]})
+        | AstFunctionCall       -- (plus1 3)
+        | AstList               -- [1 2 3 (+ 2 5)]
+        | AstOpen               -- ({[
+        | AstClose              -- ]})
         | AstError
         deriving (Show, Eq)
 
@@ -165,7 +166,6 @@ module Syntax (
         then ([createAstNode AstTypeSymbol [t] []], ts)
         else checkEnd [t]
 
-
     _isImportedType' :: AstFn
     _isImportedType' []            = checkEnd []
     _isImportedType' [_, _]        = checkEnd []
@@ -173,6 +173,22 @@ module Syntax (
         if (_TType t == T_Symbol && _TType t' == T_ReferenceDot && _TType t'' == T_Type)
         then ([createAstNode AstImportedTypeSymbol (t:t':t'':[]) []], ts)
         else checkEnd (t:t':t'':[])
+
+    _isRestSpread :: AstFn -- @
+    _isRestSpread []     = checkEnd []
+    _isRestSpread (t:ts) =
+        if (_TType t == T_RestSpread)
+        then ([], ts)
+        else checkEnd [t]
+
+    _isRestType :: AstFn -- @T , @imported.T, @{T -> T}
+    _isRestType tokens =
+        if hasError
+        then (nodes, [])
+        else ([astResult], restTokens)
+        where (nodes, restTokens) = qExact [_isRestSpread, qOr [_isType, isFunctionTypeDef, isListType, isPropListType, isMaybeType]] tokens
+              hasError = hasAstError nodes
+              astResult = createAstNode AstRestType [] nodes
 
     _isType :: AstFn
     _isType = qOr [_isType', _isImportedType']
@@ -391,16 +407,24 @@ module Syntax (
               hasError = hasAstError nodes
               astResult = createAstNode AstListType [] innerNodes
 
-    isArrowTypes :: AstFn -- T -> U -> U
+    isArrowTypes :: AstFn -- T -> ...U -> U
     isArrowTypes = qExact [
         qZeroOrMore [
             qExact [
-                qOr [_isType, isFunctionTypeDef, isListType, isPropListType, isMaybeType]
+                allTypes
                 , _hasTokenType T_ArrowLeft
                 ]
             ]
-            , qOr [_isType, isFunctionTypeDef, isListType, isPropListType, isMaybeType]
+            , qOr [
+                qExact [
+                    _isRestType
+                    , _hasTokenType T_ArrowLeft
+                    , allTypes
+                ]
+                , allTypes
+            ]
         ]
+        where allTypes = qOr [_isType, isFunctionTypeDef, isListType, isPropListType, isMaybeType]
 
     isFunctionTypeDef :: AstFn -- {T -> {T -> U} -> U}
     isFunctionTypeDef = withCurlyGroup AstFunctionType [isArrowTypes]

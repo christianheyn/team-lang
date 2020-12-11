@@ -96,34 +96,19 @@ module Tokenizer.RegexSpec where
         describe "Token Regex" $ do
             describe "_isReferenceDot" $ do
                 it "." $ do
-                    let actual = _isReferenceDot $ L.pack "."
+                    let actual = _isReferenceDot "."
                         expected = True
                     actual `shouldBe` expected
 
                 it "NOT: .." $ do
-                    let actual = _isReferenceDot $ L.pack ".."
+                    let actual = _isReferenceDot ".."
                         expected = False
                     actual `shouldBe` expected
 
-            describe "_isRestDots" $ do
-                it "..." $ do
-                    let actual = _isRestDots $ L.pack "..."
+            describe "_isRestSpread" $ do
+                it "@" $ do
+                    let actual = _isRestSpread "@"
                         expected = True
-                    actual `shouldBe` expected
-
-                it "NOT: .." $ do
-                    let actual = _isRestDots $ L.pack ".."
-                        expected = False
-                    actual `shouldBe` expected
-
-                it "NOT: ." $ do
-                    let actual = _isRestDots $ L.pack "."
-                        expected = False
-                    actual `shouldBe` expected
-
-                it "NOT: ...." $ do
-                    let actual = _isRestDots $ L.pack "...."
-                        expected = False
                     actual `shouldBe` expected
 
             describe "_isSymbol" $ do

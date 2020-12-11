@@ -108,5 +108,12 @@ Number -> {Maybe -> Number Void}
 [a: maybe <T> T -> Number b: Void]
 
 tbd {f
-    <T> maybe Number -> maybe T -> Number -> ...Number -> ...tdd.Number
+    <T> maybe Number -> maybe T -> Number -> @Number -> @tdd.Number
 }
+
+T -> @{T -> T} -> [T]
+
+{+, @Number -> Number, (@ns) ()}
+{+, @CNumber -> CNumber, (@ns) ()}
+
+{n+cn CNumber -> Number -> CNumber (n cn) (+ (toComplex n) cn)}

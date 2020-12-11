@@ -383,6 +383,53 @@ module ASTSpec where
                         [])
                 actual `shouldBe` expected
 
+            it "TYPEDEFINITION REST: \"T -> @U -> U\"" $ do
+                let actual = isTypeDefinition $ generateTokens "T -> @U -> U"
+                    expected = ([
+                            AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 0}], _astChildren = []},
+                                AST_NODE {_astNodeType = AstRestType, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "U", _TIndex = 5}], _astChildren = []}
+                                ]},
+                                AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "U", _TIndex = 9}], _astChildren = []}
+                            ]}
+                        ],
+                        [])
+                actual `shouldBe` expected
+
+            it "TYPEDEFINITION REST: \"T -> @imported.V -> U\"" $ do
+                let actual = isTypeDefinition $ generateTokens "T -> @imported.V -> U"
+                    expected = ([
+                            AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 0}], _astChildren = []},
+                                AST_NODE {_astNodeType = AstRestType, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstImportedTypeSymbol, _astTokens = [Token {_TType = T_Symbol, _TValue = "imported", _TIndex = 5},Token {_TType = T_ReferenceDot, _TValue = ".", _TIndex = 6},Token {_TType = T_Type, _TValue = "V", _TIndex = 7}], _astChildren = []}]},
+                                AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "U", _TIndex = 11}], _astChildren = []}
+                            ]}
+                        ],
+                        [])
+                actual `shouldBe` expected
+
+            it "TYPEDEFINITION REST: \"T -> @[a: U] -> U\"" $ do
+                let actual = isTypeDefinition $ generateTokens "T -> @[a: U] -> U"
+                    expected = ([
+                            AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 0}], _astChildren = []},
+                                AST_NODE {_astNodeType = AstRestType, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstPropListType, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstPropKeyValueType, _astTokens = [], _astChildren = [
+                                            AST_NODE {_astNodeType = AstProp, _astTokens = [Token {_TType = T_Prop, _TValue = "a:", _TIndex = 6}], _astChildren = []},
+                                            AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                                AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "U", _TIndex = 8}], _astChildren = []}
+                                            ]}
+                                        ]}
+                                    ]}
+                                ]},
+                                AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "U", _TIndex = 13}], _astChildren = []}
+                            ]}
+                        ],[])
+                actual `shouldBe` expected
+
             it "TYPEDEFINITION: \"[a: imported.Type]\"" $ do
                 let actual = isTypeDefinition $ generateTokens "[a: imported.Type]"
                     expected = ([
