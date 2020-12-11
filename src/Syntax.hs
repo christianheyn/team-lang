@@ -154,7 +154,7 @@ module Syntax (
             , T_ComplexNumber
             , T_BooleanTrue
             , T_BooleanFalse
-            -- , T_VOID
+            , T_Void
             ])
         then ([createAstNode AstPrimitiv [t] []], ts)
         else checkEnd [t]

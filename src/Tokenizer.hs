@@ -191,6 +191,7 @@ module Tokenizer (
         | T_String
         | T_BooleanTrue
         | T_BooleanFalse
+        | T_Void
         | T_NamedParameter
         | T_ReferenceDot
         | T_RestSpread
@@ -344,6 +345,7 @@ module Tokenizer (
             , ((== "concurrent"), T_Concurrent)
             , ((== "true"), T_BooleanTrue)
             , ((== "false"), T_BooleanFalse)
+            , ((== "void"), T_Void)
             , ((== "->"), T_ArrowLeft)
             , ((== "feature"), T_FlagFeature)
             , ((== "project"), T_FlagProject)
