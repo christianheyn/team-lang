@@ -107,6 +107,6 @@ Number -> {Maybe -> Number Void}
 
 [a: maybe <T> T -> Number b: Void]
 
-{f
-    <T> maybe Number -> maybe T -> Number
+tbd {f
+    <T> maybe Number -> maybe T -> Number -> ...Number -> ...tdd.Number
 }

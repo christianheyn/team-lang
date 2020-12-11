@@ -88,11 +88,12 @@ module Syntax (
     qZeroOrMore :: [AstFn] -> AstFn
     qZeroOrMore checks = qZeroOrMore' checks
 
-    qOneOrMore' :: [AstFn] -> [Token] -> ([AST_NODE], [Token])
+    qOneOrMore' :: [AstFn] -> AstFn
     qOneOrMore' _      []     = ([], [])
-    qOneOrMore' checks tokens = if isJust match
-                                  then (astNodes ++ nextAstNodes, finalTokens)
-                                  else ([createAstNode AstError [] []], [])
+    qOneOrMore' checks tokens =
+        if isJust match
+        then (astNodes ++ nextAstNodes, finalTokens)
+        else ([createAstNode AstError [] []], [])
         where results = map (\c -> c tokens) checks
               notEmpty (a, _) = ((not . null) a) && ((not . hasAstError) a)
               match    = find notEmpty results -- TODO: Sort most ast nodes
@@ -102,7 +103,12 @@ module Syntax (
     qOneOrMore :: [AstFn] -> AstFn
     qOneOrMore checks = qOneOrMore' checks
 
-    -- TODO: qZeroOrOne :: [AstFn] -> AstFn
+    qOptional :: AstFn -> AstFn
+    qOptional check tokens =
+        if (not . hasAstError) nodes
+        then (nodes, restTokens)
+        else ([], tokens)
+        where (nodes, restTokens) = check tokens
 
     qExact' :: [AstFn] -> [Token] -> ([AST_NODE], [Token])
     qExact' []     ts     = ([], ts)
@@ -315,6 +321,7 @@ module Syntax (
         else ([astResult], restTokens)
         where (nodes, restTokens) = qExact ([
                                               _isOpenCurly
+                                            , qOptional isTypeDefinition
                                             , isParamterList
                                             , isFunctionBody
                                             , _isClosingCurly]) tokens
@@ -330,6 +337,7 @@ module Syntax (
         where (nodes, restTokens) = qExact ([
                                               _isOpenCurly
                                             , _isSymbol
+                                            , qOptional isTypeDefinition
                                             , isParamterList
                                             , isFunctionBody
                                             , _isClosingCurly]) tokens
@@ -444,3 +452,4 @@ module Syntax (
 
     isPropListType :: AstFn -- [a: Numbe, b: String, c: imported.Type]
     isPropListType = withSquareGroup AstPropListType [qOneOrMore [isPropKeyValueType]]
+

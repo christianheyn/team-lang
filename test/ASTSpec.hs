@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 module ASTSpec where
 
@@ -398,6 +399,40 @@ module ASTSpec where
                         ],
                         [])
 
+                actual `shouldBe` expected
+
+
+            let completeFunction1 = [r|
+    {f
+        <T> Number -> T -> imported.User -> T
+        (n t user)
+        (wip)
+    }
+            |]
+            it ("FUNCTION: \"" ++ completeFunction1 ++ "\n\"") $ do
+                let actual = isFunction $ generateTokens $ L.pack completeFunction1
+                    expected = ([
+                            AST_NODE {_astNodeType = AstFunction, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstSymbol, _astTokens = [Token {_TType = T_Symbol, _TValue = "f", _TIndex = 3}], _astChildren = []},
+                                AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstTemplateType, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 7}], _astChildren = []}]},
+                                    AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "Number", _TIndex = 10}], _astChildren = []},
+                                    AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 14}], _astChildren = []},
+                                    AST_NODE {_astNodeType = AstImportedTypeSymbol, _astTokens = [Token {_TType = T_Symbol, _TValue = "imported", _TIndex = 18},Token {_TType = T_ReferenceDot, _TValue = ".", _TIndex = 19},Token {_TType = T_Type, _TValue = "User", _TIndex = 20}], _astChildren = []},
+                                    AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 24}], _astChildren = []}]},
+                                AST_NODE {_astNodeType = AstParameterList, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstParameter, _astTokens = [Token {_TType = T_Symbol, _TValue = "n", _TIndex = 28}], _astChildren = []},
+                                    AST_NODE {_astNodeType = AstParameter, _astTokens = [Token {_TType = T_Symbol, _TValue = "t", _TIndex = 30}], _astChildren = []},
+                                    AST_NODE {_astNodeType = AstParameter, _astTokens = [Token {_TType = T_Symbol, _TValue = "user", _TIndex = 32}], _astChildren = []}]},
+                                AST_NODE {_astNodeType = AstFunctionBody, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstFunctionCall, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstSymbol, _astTokens = [Token {_TType = T_Symbol, _TValue = "wip", _TIndex = 37}], _astChildren = []}
+                                    ]}
+                                ]}
+                            ]}
+                        ],
+                        [])
                 actual `shouldBe` expected
 
 
