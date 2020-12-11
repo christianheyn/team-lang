@@ -371,4 +371,33 @@ module ASTSpec where
                         [])
                 actual `shouldBe` expected
 
+            it "TYPEDEFINITION: \"imported.Type -> imported.Type2\"" $ do
+                let actual = isTypeDefinition $ generateTokens "imported.Type -> imported.Type2"
+                    expected = ([
+                            AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstImportedTypeSymbol, _astTokens = [Token {_TType = T_Symbol, _TValue = "imported", _TIndex = 0},Token {_TType = T_ReferenceDot, _TValue = ".", _TIndex = 1},Token {_TType = T_Type, _TValue = "Type", _TIndex = 2}], _astChildren = []},
+                                AST_NODE {_astNodeType = AstImportedTypeSymbol, _astTokens = [Token {_TType = T_Symbol, _TValue = "imported", _TIndex = 6},Token {_TType = T_ReferenceDot, _TValue = ".", _TIndex = 7},Token {_TType = T_Type, _TValue = "Type2", _TIndex = 8}], _astChildren = []}
+                            ]}
+                        ],
+                        [])
+                actual `shouldBe` expected
+
+            it "TYPEDEFINITION: \"[a: imported.Type]\"" $ do
+                let actual = isTypeDefinition $ generateTokens "[a: imported.Type]"
+                    expected = ([
+                            AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstPropListType, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstPropKeyValueType, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstProp, _astTokens = [Token {_TType = T_Prop, _TValue = "a:", _TIndex = 1}], _astChildren = []},
+                                        AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                            AST_NODE {_astNodeType = AstImportedTypeSymbol, _astTokens = [Token {_TType = T_Symbol, _TValue = "imported", _TIndex = 3},Token {_TType = T_ReferenceDot, _TValue = ".", _TIndex = 4},Token {_TType = T_Type, _TValue = "Type", _TIndex = 5}], _astChildren = []}
+                                        ]}
+                                    ]}
+                                ]}
+                            ]}
+                        ],
+                        [])
+
+                actual `shouldBe` expected
+
 

@@ -34,6 +34,7 @@ module Syntax (
         | AstSymbol           -- a
         | AstTypeDefinition   -- <T> <U> T -> {T -> [U]}
         | AstTypeSymbol       -- T
+        | AstImportedTypeSymbol -- tdd.Test
         | AstTemplateType     -- <T>
         | AstMaybeType        -- maybe T
         | AstFunctionType     -- {T -> U}
@@ -131,90 +132,114 @@ module Syntax (
     checkEnd ts = ([createAstNode AstError ts []] , [])
 
     _isPrimitive :: AstFn
-    _isPrimitive []           = checkEnd []
-    _isPrimitive allTs@(t:ts) = if (_TType t `elem` [
-                                                      T_String
-                                                    , T_Number
-                                                    , T_ComplexNumber
-                                                    , T_BooleanTrue
-                                                    , T_BooleanFalse
-                                                    -- , T_VOID
-                                                    ]
-                                )
-                                then ([createAstNode AstPrimitiv [t] []], ts)
-                                else checkEnd [t]
+    _isPrimitive []     = checkEnd []
+    _isPrimitive (t:ts) =
+        if (_TType t `elem` [
+              T_String
+            , T_Number
+            , T_ComplexNumber
+            , T_BooleanTrue
+            , T_BooleanFalse
+            -- , T_VOID
+            ])
+        then ([createAstNode AstPrimitiv [t] []], ts)
+        else checkEnd [t]
 
     _isSymbol :: AstFn
-    _isSymbol []           = checkEnd []
-    _isSymbol allTs@(t:ts) = if (_TType t == T_Symbol)
-                  then ([createAstNode AstSymbol [t] []], ts)
-                  else checkEnd [t]
+    _isSymbol []     = checkEnd []
+    _isSymbol (t:ts) =
+        if (_TType t == T_Symbol)
+        then ([createAstNode AstSymbol [t] []], ts)
+        else checkEnd [t]
+
+    _isType' :: AstFn
+    _isType' []     = checkEnd []
+    _isType' (t:ts) =
+        if (_TType t == T_Type)
+        then ([createAstNode AstTypeSymbol [t] []], ts)
+        else checkEnd [t]
+
+
+    _isImportedType' :: AstFn
+    _isImportedType' []            = checkEnd []
+    _isImportedType' [_, _]        = checkEnd []
+    _isImportedType' (t:t':t'':ts) =
+        if (_TType t == T_Symbol && _TType t' == T_ReferenceDot && _TType t'' == T_Type)
+        then ([createAstNode AstImportedTypeSymbol (t:t':t'':[]) []], ts)
+        else checkEnd (t:t':t'':[])
 
     _isType :: AstFn
-    _isType []           = checkEnd []
-    _isType allTs@(t:ts) = if (_TType t == T_Type)
-                  then ([createAstNode AstTypeSymbol [t] []], ts)
-                  else checkEnd [t]
+    _isType = qOr [_isType', _isImportedType']
 
     _isEnumMember :: AstFn
-    _isEnumMember []           = checkEnd []
-    _isEnumMember allTs@(t:ts) = if (_TType t `elem` [T_EnumMember, T_NamedParameter])
-                  then ([createAstNode AstEnumMember [t] []], ts)
-                  else checkEnd [t]
+    _isEnumMember []     = checkEnd []
+    _isEnumMember (t:ts) =
+        if (_TType t `elem` [T_EnumMember, T_NamedParameter])
+        then ([createAstNode AstEnumMember [t] []], ts)
+        else checkEnd [t]
 
     _isProp :: AstFn
-    _isProp []           = checkEnd []
-    _isProp allTs@(t:ts) = if (_TType t `elem` [T_Prop])
-                  then ([createAstNode AstProp [t] []], ts)
-                  else checkEnd [t]
+    _isProp []     = checkEnd []
+    _isProp (t:ts) =
+        if (_TType t `elem` [T_Prop])
+        then ([createAstNode AstProp [t] []], ts)
+        else checkEnd [t]
 
     _hasTokenType :: TokenType -> AstFn
-    _hasTokenType ttype []           = checkEnd []
-    _hasTokenType ttype allTs@(t:ts) = if (_TType t == ttype)
-                  then ([], ts)
-                  else checkEnd [t]
+    _hasTokenType ttype []     = checkEnd []
+    _hasTokenType ttype (t:ts) =
+        if (_TType t == ttype)
+        then ([], ts)
+        else checkEnd [t]
 
     _isParameter :: AstFn
-    _isParameter []           = checkEnd []
-    _isParameter allTs@(t:ts) = if (_TType t `elem` [T_Symbol, T_NamedParameter])
-                  then ([createAstNode AstParameter [t] []], ts)
-                  else checkEnd [t]
+    _isParameter []     = checkEnd []
+    _isParameter (t:ts) =
+        if (_TType t `elem` [T_Symbol, T_NamedParameter])
+        then ([createAstNode AstParameter [t] []], ts)
+        else checkEnd [t]
 
     _isOpenRound :: AstFn
-    _isOpenRound []           = checkEnd []
-    _isOpenRound allTs@(t:ts) = if (_TType t == T_OpenRoundBracket)
-                  then ([createAstNode AstOpen [t] []], ts)
-                  else checkEnd [t]
+    _isOpenRound []     = checkEnd []
+    _isOpenRound (t:ts) =
+        if (_TType t == T_OpenRoundBracket)
+        then ([createAstNode AstOpen [t] []], ts)
+        else checkEnd [t]
 
     _isClosingRound :: AstFn
-    _isClosingRound []           = checkEnd []
-    _isClosingRound allTs@(t:ts) = if (_TType t == T_ClosingRoundBracket)
-                  then ([createAstNode AstClose [t] []], ts)
-                  else checkEnd [t]
+    _isClosingRound []     = checkEnd []
+    _isClosingRound (t:ts) =
+        if (_TType t == T_ClosingRoundBracket)
+        then ([createAstNode AstClose [t] []], ts)
+        else checkEnd [t]
 
     _isOpenSquare :: AstFn
-    _isOpenSquare []           = checkEnd []
-    _isOpenSquare allTs@(t:ts) = if (_TType t == T_OpenSquareBracket)
-                  then ([createAstNode AstOpen [t] []], ts)
-                  else checkEnd [t]
+    _isOpenSquare []     = checkEnd []
+    _isOpenSquare (t:ts) =
+        if (_TType t == T_OpenSquareBracket)
+        then ([createAstNode AstOpen [t] []], ts)
+        else checkEnd [t]
 
     _isClosingSquare :: AstFn
-    _isClosingSquare []           = checkEnd []
-    _isClosingSquare allTs@(t:ts) = if (_TType t == T_ClosingSquareBracket)
-                  then ([createAstNode AstClose [t] []], ts)
-                  else checkEnd [t]
+    _isClosingSquare []     = checkEnd []
+    _isClosingSquare (t:ts) =
+        if (_TType t == T_ClosingSquareBracket)
+        then ([createAstNode AstClose [t] []], ts)
+        else checkEnd [t]
 
     _isOpenCurly :: AstFn
-    _isOpenCurly []           = checkEnd []
-    _isOpenCurly allTs@(t:ts) = if (_TType t == T_OpenCurlyBracket)
-                  then ([createAstNode AstOpen [t] []], ts)
-                  else checkEnd [t]
+    _isOpenCurly []     = checkEnd []
+    _isOpenCurly (t:ts) =
+        if (_TType t == T_OpenCurlyBracket)
+        then ([createAstNode AstOpen [t] []], ts)
+        else checkEnd [t]
 
     _isClosingCurly :: AstFn
-    _isClosingCurly []           = checkEnd []
-    _isClosingCurly allTs@(t:ts) = if (_TType t == T_ClosingCurlyBracket)
-                  then ([createAstNode AstClose [t] []], ts)
-                  else checkEnd [t]
+    _isClosingCurly []     = checkEnd []
+    _isClosingCurly (t:ts) =
+        if (_TType t == T_ClosingCurlyBracket)
+        then ([createAstNode AstClose [t] []], ts)
+        else checkEnd [t]
 
     hasAstError [] = False
     hasAstError as = or (map go as)
@@ -223,27 +248,30 @@ module Syntax (
                      else hasAstError (_astChildren a)
 
     withRoundGroup :: AST_NODE_TYPE -> [AstFn] -> AstFn
-    withRoundGroup t checks tokens = if hasError
-                                   then (nodes, [])
-                                   else ([astResult], restTokens)
+    withRoundGroup t checks tokens =
+        if hasError
+        then (nodes, [])
+        else ([astResult], restTokens)
         where (nodes, restTokens) = qExact ([_isOpenRound] ++ checks ++ [_isClosingRound]) tokens
               innerNodes = (init . tail) nodes
               hasError = hasAstError nodes
               astResult = createAstNode t [] innerNodes
 
     withCurlyGroup :: AST_NODE_TYPE -> [AstFn] -> AstFn
-    withCurlyGroup t checks tokens = if hasError
-                                   then (nodes, [])
-                                   else ([astResult], restTokens)
+    withCurlyGroup t checks tokens =
+        if hasError
+        then (nodes, [])
+        else ([astResult], restTokens)
         where (nodes, restTokens) = qExact ([_isOpenCurly] ++ checks ++ [_isClosingCurly]) tokens
               innerNodes = (init . tail) nodes
               hasError = hasAstError nodes
               astResult = createAstNode t [] innerNodes
 
-    withSquareGroup :: AST_NODE_TYPE -> [AstFn] -> [Token] -> ([AST_NODE], [Token])
-    withSquareGroup astType checks tokens = if hasError
-                                   then (nodes, [])
-                                   else ([astResult], restTokens)
+    withSquareGroup :: AST_NODE_TYPE -> [AstFn] -> AstFn
+    withSquareGroup astType checks tokens =
+        if hasError
+        then (nodes, [])
+        else ([astResult], restTokens)
         where (nodes, restTokens) = qExact ([ _isOpenSquare] ++ checks ++ [_isClosingSquare]) tokens
               innerNodes = (init . tail) nodes
               hasError = hasAstError nodes
@@ -267,9 +295,10 @@ module Syntax (
         ]
 
     isFunctionBody :: AstFn
-    isFunctionBody tokens = if hasAstError nodes
-                            then (nodes, [])
-                            else ([astResult], restTokens)
+    isFunctionBody tokens =
+        if hasAstError nodes
+        then (nodes, [])
+        else ([astResult], restTokens)
         where (nodes, restTokens) = check tokens
               astResult = createAstNode AstFunctionBody [] nodes
               check = qOr [
@@ -280,9 +309,10 @@ module Syntax (
                           ]
 
     isLambda :: AstFn
-    isLambda tokens = if hasError
-                      then (nodes, [])
-                      else ([astResult], restTokens)
+    isLambda tokens =
+        if hasError
+        then (nodes, [])
+        else ([astResult], restTokens)
         where (nodes, restTokens) = qExact ([
                                               _isOpenCurly
                                             , isParamterList
@@ -293,9 +323,10 @@ module Syntax (
               astResult = createAstNode AstLambda [] innerNodes
 
     isFunction :: AstFn
-    isFunction tokens = if hasError
-                        then (nodes, [])
-                        else ([astResult], restTokens)
+    isFunction tokens =
+        if hasError
+        then (nodes, [])
+        else ([astResult], restTokens)
         where (nodes, restTokens) = qExact ([
                                               _isOpenCurly
                                             , _isSymbol
@@ -307,37 +338,42 @@ module Syntax (
               astResult = createAstNode AstFunction [] innerNodes
 
     _isOpenXML :: AstFn
-    _isOpenXML []           = checkEnd []
-    _isOpenXML allTs@(t:ts) = if (_TType t == T_Symbol && _TValue t == "<" )
-                  then ([], ts)
-                  else checkEnd [t]
+    _isOpenXML []     = checkEnd []
+    _isOpenXML (t:ts) =
+        if (_TType t == T_Symbol && _TValue t == "<" )
+        then ([], ts)
+        else checkEnd [t]
 
     _isClosingXML :: AstFn
-    _isClosingXML []           = checkEnd []
-    _isClosingXML allTs@(t:ts) = if (_TType t == T_Symbol && _TValue t == ">" )
-                  then ([], ts)
-                  else checkEnd [t]
+    _isClosingXML []     = checkEnd []
+    _isClosingXML (t:ts) =
+        if (_TType t == T_Symbol && _TValue t == ">" )
+        then ([], ts)
+        else checkEnd [t]
 
     isTemplateType :: AstFn -- <T>
-    isTemplateType tokens = if hasError
-                     then (nodes, [])
-                     else ([astResult], restTokens)
+    isTemplateType tokens =
+        if hasError
+        then (nodes, [])
+        else ([astResult], restTokens)
         where (nodes, restTokens) = qExact [_isOpenXML, _isType, _isClosingXML] tokens
               hasError = hasAstError nodes
               astResult = createAstNode AstTemplateType [] nodes
 
     isMaybeType :: AstFn
-    isMaybeType tokens = if hasError
-                         then (nodes, [])
-                         else ([astResult], restTokens)
+    isMaybeType tokens =
+        if hasError
+        then (nodes, [])
+        else ([astResult], restTokens)
         where (nodes, restTokens) = qExact [_hasTokenType T_MaybeType, isTypeDefinition] tokens
               hasError = hasAstError nodes
               astResult = createAstNode AstMaybeType [] nodes
 
     isListType :: AstFn
-    isListType tokens = if hasError
-                        then (nodes, [])
-                        else ([astResult], restTokens)
+    isListType tokens =
+        if hasError
+        then (nodes, [])
+        else ([astResult], restTokens)
         where (nodes, restTokens) = qExact [
                       _isOpenSquare
                     , qOr [_isType, isFunctionTypeDef, isListType]
@@ -362,9 +398,10 @@ module Syntax (
     isFunctionTypeDef = withCurlyGroup AstFunctionType [isArrowTypes]
 
     isTypeDefinition :: AstFn
-    isTypeDefinition tokens = if hasError
-                              then (nodes, [])
-                              else ([astResult], restTokens)
+    isTypeDefinition tokens =
+        if hasError
+        then (nodes, [])
+        else ([astResult], restTokens)
         where (nodes, restTokens) = qExact [
                                           qZeroOrMore [isTemplateType]
                                         , isArrowTypes
@@ -373,17 +410,19 @@ module Syntax (
               astResult = createAstNode AstTypeDefinition [] nodes
 
     isClassFunction :: AstFn
-    isClassFunction tokens = if hasError
-                             then (nodes, [])
-                             else ([astResult], restTokens)
+    isClassFunction tokens =
+        if hasError
+        then (nodes, [])
+        else ([astResult], restTokens)
         where (nodes, restTokens) = qExact [_isSymbol, isTypeDefinition] tokens
               hasError = hasAstError nodes
               astResult = createAstNode AstClassFunction [] nodes
 
     isClass :: AstFn
-    isClass tokens = if hasError
-                    then (nodes, [])
-                    else ([astResult], restTokens)
+    isClass tokens =
+        if hasError
+        then (nodes, [])
+        else ([astResult], restTokens)
         where (nodes, restTokens) = qExact ([
                                               _hasTokenType T_ClassKeyword
                                             , _isType
@@ -395,9 +434,10 @@ module Syntax (
               astResult = createAstNode AstClass [] nodes
 
     isPropKeyValueType :: AstFn -- a: Numbe
-    isPropKeyValueType tokens = if hasError
-                                then (nodes, [])
-                                else ([astResult], restTokens)
+    isPropKeyValueType tokens =
+        if hasError
+        then (nodes, [])
+        else ([astResult], restTokens)
         where (nodes, restTokens) = qExact [ _isProp, isTypeDefinition ] tokens
               hasError = hasAstError nodes
               astResult = createAstNode AstPropKeyValueType [] nodes

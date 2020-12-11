@@ -14,6 +14,8 @@ module Tokenizer (
     , _isProp
     , _isEnumMember
     , _isNamedParameter
+    , _isReferenceDot
+    , _isRestDots
     , _isOpenSquareBracket
     , _isClosingSquareBracket
     , _isOpenCurlyBracket
@@ -144,7 +146,6 @@ module Tokenizer (
         where reg1 = "([-a-z_\\=\\~\\&\\|\\*\\+\\<\\>\\/\\?\\!\\$\\%]+[-a-z_0-9\\=\\~\\&\\|\\*\\+\\<\\>\\/\\?\\!\\$\\%]*)"
               reg2 = "([-a-z_]+[-a-z_A-Z0-9]*)"
 
-
     _isProp :: L.ByteString -> Bool
     _isProp "" = False
     _isProp x  = _noNewlineStart x && matchRegex "^[a-z_]+[-a-z_A-Z0-9]*(\\:){1}$" x
@@ -156,6 +157,14 @@ module Tokenizer (
     _isNamedParameter :: L.ByteString -> Bool
     _isNamedParameter "" = False
     _isNamedParameter x  = _noNewlineStart x && matchRegex "^(\\:){1}[a-z_]+[-a-z_A-Z0-9]*$" x
+
+    _isReferenceDot :: L.ByteString -> Bool
+    _isReferenceDot "" = False
+    _isReferenceDot x  = _noNewlineStart x && matchRegex "^(\\.){1}$" x
+
+    _isRestDots :: L.ByteString -> Bool
+    _isRestDots "" = False
+    _isRestDots x  = _noNewlineStart x && matchRegex "^(\\.){3}$" x
 
     _isNewline :: L.ByteString -> Bool
     _isNewline x  = x == "\n"
@@ -183,6 +192,8 @@ module Tokenizer (
         | T_BooleanTrue
         | T_BooleanFalse
         | T_NamedParameter
+        | T_ReferenceDot
+        | T_RestDots
 
         | T_OpenSquareBracket
         | T_ClosingSquareBracket
@@ -244,6 +255,7 @@ module Tokenizer (
                          then True
                          else untilTrue fs x
 
+
     -- step 2
     predicateToType = [
           (_isNewline,              T_Newline)
@@ -254,6 +266,8 @@ module Tokenizer (
         , (_isProp,                 T_Prop)
         , (_isNamedParameter,       T_NamedParameter)
         , (_isEnumMember,           T_EnumMember)
+        , (_isReferenceDot,         T_ReferenceDot)
+        , (_isRestDots,             T_RestDots)
 
         , (_isOpenSquareBracket,    T_OpenSquareBracket)
         , (_isClosingSquareBracket, T_ClosingSquareBracket)

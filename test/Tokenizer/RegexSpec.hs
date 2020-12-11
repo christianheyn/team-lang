@@ -94,6 +94,37 @@ module Tokenizer.RegexSpec where
     spec :: Spec
     spec = do
         describe "Token Regex" $ do
+            describe "_isReferenceDot" $ do
+                it "." $ do
+                    let actual = _isReferenceDot $ L.pack "."
+                        expected = True
+                    actual `shouldBe` expected
+
+                it "NOT: .." $ do
+                    let actual = _isReferenceDot $ L.pack ".."
+                        expected = False
+                    actual `shouldBe` expected
+
+            describe "_isRestDots" $ do
+                it "..." $ do
+                    let actual = _isRestDots $ L.pack "..."
+                        expected = True
+                    actual `shouldBe` expected
+
+                it "NOT: .." $ do
+                    let actual = _isRestDots $ L.pack ".."
+                        expected = False
+                    actual `shouldBe` expected
+
+                it "NOT: ." $ do
+                    let actual = _isRestDots $ L.pack "."
+                        expected = False
+                    actual `shouldBe` expected
+
+                it "NOT: ...." $ do
+                    let actual = _isRestDots $ L.pack "...."
+                        expected = False
+                    actual `shouldBe` expected
 
             describe "_isSymbol" $ do
                 checkSymbol "a"
