@@ -314,13 +314,10 @@ module ASTSpec where
                     expected = ([
                             AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
                                 AST_NODE {_astNodeType = AstMaybeType, _astTokens = [], _astChildren = [
-                                    AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
-                                        AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 2}], _astChildren = []}
-                                    ]}
+                                    AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 2}], _astChildren = []}
                                 ]}
                             ]}
-                        ],
-                        [])
+                        ],[])
                 actual `shouldBe` expected
 
             it "TYPEDEFINITION: \"maybe maybe T\"" $ do
@@ -328,18 +325,13 @@ module ASTSpec where
                     expected = ([
                             AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
                                 AST_NODE {_astNodeType = AstMaybeType, _astTokens = [], _astChildren = [
-                                    AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
-                                        AST_NODE {_astNodeType = AstMaybeType, _astTokens = [], _astChildren = [
-                                            AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
-                                                AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 4}], _astChildren = []}
-                                            ]}
-                                        ]}
+                                    AST_NODE {_astNodeType = AstMaybeType, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 4}], _astChildren = []}
                                     ]}
                                 ]}
                             ]}
                         ],
                         [])
-
                 actual `shouldBe` expected
 
             it "TYPEDEFINITION: \"[a: [a: maybe [Number]]]\"" $ do
@@ -352,13 +344,11 @@ module ASTSpec where
                                         AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
                                             AST_NODE {_astNodeType = AstPropListType, _astTokens = [], _astChildren = [
                                                 AST_NODE {_astNodeType = AstPropKeyValueType, _astTokens = [], _astChildren = [
-                                                AST_NODE {_astNodeType = AstProp, _astTokens = [Token {_TType = T_Prop, _TValue = "a:", _TIndex = 4}], _astChildren = []},
+                                                    AST_NODE {_astNodeType = AstProp, _astTokens = [Token {_TType = T_Prop, _TValue = "a:", _TIndex = 4}], _astChildren = []},
                                                     AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
                                                         AST_NODE {_astNodeType = AstMaybeType, _astTokens = [], _astChildren = [
-                                                            AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
-                                                                AST_NODE {_astNodeType = AstListType, _astTokens = [], _astChildren = [
-                                                                    AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "Number", _TIndex = 9}], _astChildren = []}
-                                                                ]}
+                                                            AST_NODE {_astNodeType = AstListType, _astTokens = [], _astChildren = [
+                                                                AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "Number", _TIndex = 9}], _astChildren = []}
                                                             ]}
                                                         ]}
                                                     ]}
@@ -370,6 +360,7 @@ module ASTSpec where
                             ]}
                         ],
                         [])
+
                 actual `shouldBe` expected
 
             it "TYPEDEFINITION: \"imported.Type -> imported.Type2\"" $ do
@@ -439,11 +430,9 @@ module ASTSpec where
                                         AST_NODE {_astNodeType = AstProp, _astTokens = [Token {_TType = T_Prop, _TValue = "a:", _TIndex = 1}], _astChildren = []},
                                         AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
                                             AST_NODE {_astNodeType = AstMaybeType, _astTokens = [], _astChildren = [
-                                                AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
-                                                    AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 5}], _astChildren = []},
-                                                    AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "Number", _TIndex = 9}], _astChildren = []}
-                                                ]}
-                                            ]}
+                                                AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 5}], _astChildren = []}
+                                            ]},
+                                            AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "Number", _TIndex = 9}], _astChildren = []}
                                         ]}
                                     ]},
                                     AST_NODE {_astNodeType = AstPropKeyValueType, _astTokens = [], _astChildren = [
@@ -454,7 +443,8 @@ module ASTSpec where
                                     ]}
                                 ]}
                             ]}
-                        ],[])
+                        ],
+                        [])
                 actual `shouldBe` expected
 
             it "ERROR: TYPEDEFINITION: \"[a: <T> maybe T -> Number]\"" $ do

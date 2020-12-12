@@ -390,10 +390,10 @@ module Syntax (
         if hasError
         then (nodes, [])
         else ([astResult], restTokens)
-        where (nodes, restTokens) = qExact [_hasTokenType T_MaybeType, isTypeDefinition] tokens
+        where (nodes, restTokens) = qExact [_hasTokenType T_MaybeType, allTypes] tokens
               hasError = hasAstError nodes
               astResult = createAstNode AstMaybeType [] nodes
-              -- allTypes = qOr [_isType, isFunctionTypeDef, isListType, isPropListType, isMaybeType]
+              allTypes = qOr [_isType, isFunctionTypeDef, isListType, isPropListType, isMaybeType]
 
     isListType :: AstFn
     isListType tokens =
@@ -409,7 +409,7 @@ module Syntax (
               hasError = hasAstError nodes
               astResult = createAstNode AstListType [] innerNodes
 
-    isArrowTypes :: AstFn -- T -> @U -> U
+    isArrowTypes :: AstFn -- T -> @U -> U, @T -> T
     isArrowTypes = qOr [
             qExact [
                 _isRestType
@@ -495,3 +495,4 @@ module Syntax (
 
     isPropListType :: AstFn -- [a: Numbe, b: String, c: imported.Type]
     isPropListType = withSquareGroup AstPropListType [qOneOrMore [isPropKeyValueType]]
+
