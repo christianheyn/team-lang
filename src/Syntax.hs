@@ -9,6 +9,7 @@ module Syntax (
     , isLambda
     , isList
     , isEnum
+    , isEnumValue
     , isTemplateType
     , isPropListType
     , isClass
@@ -50,6 +51,7 @@ module Syntax (
         | AstParameterList      -- (a b)
         | AstEnum               -- (enum Hallo :hi :hello :huhu)
         | AstEnumMember         -- :hi
+        | AstEnumValue          -- Hallo:hi, imported.Hallo:hi
         | AstLambda             -- {(a) (+ a 1)}
         | AstFunction           -- {plus1 (a) (+ a 1)}
         | AstFunctionBody
@@ -200,13 +202,6 @@ module Syntax (
     _isType :: AstFn
     _isType = qOr [_isType', _isImportedType']
 
-    _isEnumMember :: AstFn
-    _isEnumMember []     = checkEnd []
-    _isEnumMember (t:ts) =
-        if (_TType t `elem` [T_EnumMember, T_NamedParameter])
-        then ([createAstNode AstEnumMember [t] []], ts)
-        else checkEnd [t]
-
     _isProp :: AstFn
     _isProp []     = checkEnd []
     _isProp (t:ts) =
@@ -309,6 +304,13 @@ module Syntax (
     isList :: AstFn
     isList = withSquareGroup AstList [qZeroOrMore [isList, _isSymbol, _isPrimitive]]
 
+    _isEnumMember :: AstFn
+    _isEnumMember []     = checkEnd []
+    _isEnumMember (t:ts) =
+        if (_TType t `elem` [T_EnumMember, T_NamedParameter])
+        then ([createAstNode AstEnumMember [t] []], ts)
+        else checkEnd [t]
+
     isEnum :: AstFn
     isEnum = withRoundGroup AstEnum [
           _hasTokenType T_EnumKeyword
@@ -316,6 +318,18 @@ module Syntax (
         , qExact [_isEnumMember]
         , qZeroOrMore [ _isEnumMember ]
         ]
+
+    isEnumValue :: AstFn
+    isEnumValue tokens =
+        if hasAstError nodes
+        then (nodes, [])
+        else ([astResult], restTokens)
+        where (nodes, restTokens) = check tokens
+              astResult = createAstNode AstEnumValue [] nodes
+              check = qExact [
+                            _isType
+                          , _isEnumMember
+                          ]
 
     isFunctionBody :: AstFn
     isFunctionBody tokens =
@@ -357,6 +371,7 @@ module Syntax (
                                             , qOptional isTypeDefinition
                                             , isParamterList
                                             , isFunctionBody
+                                            -- TODO: , qOptional isCatchFunction
                                             , _isClosingCurly]) tokens
               innerNodes = (init . tail) nodes
               hasError = hasAstError nodes
@@ -470,7 +485,7 @@ module Syntax (
               astResult = createAstNode AstClassFunction [] nodes
 
     isClass :: AstFn
-    isClass tokens =
+    isClass tokens = -- class Functor <T> { fmap <U> {T -> U} -> T -> U }
         if hasError
         then (nodes, [])
         else ([astResult], restTokens)
@@ -483,6 +498,8 @@ module Syntax (
                                             , _isClosingCurly]) tokens
               hasError = hasAstError nodes
               astResult = createAstNode AstClass [] nodes
+
+    -- TODO isClassInstance :: AstFn
 
     isPropKeyValueType :: AstFn -- a: Numbe
     isPropKeyValueType tokens =
