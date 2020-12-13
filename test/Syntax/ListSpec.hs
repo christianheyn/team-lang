@@ -30,3 +30,14 @@ module Syntax.ListSpec where
                         []
                         )
                 actual `shouldBe` expected
+
+            it "[1+3i 1+2i]" $ do
+                let actual = isList $ generateTokens "[1+3i 1+2i]"
+                    expected = ([
+                            AST_NODE {_astNodeType = AstList, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstPrimitiv, _astTokens = [Token {_TType = T_ComplexNumber, _TValue = "1+3i", _TIndex = 1}], _astChildren = []},
+                                AST_NODE {_astNodeType = AstPrimitiv, _astTokens = [Token {_TType = T_ComplexNumber, _TValue = "1+2i", _TIndex = 3}], _astChildren = []}
+                            ]}
+                        ],
+                        [])
+                actual `shouldBe` expected

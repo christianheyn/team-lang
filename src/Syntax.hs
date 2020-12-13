@@ -148,7 +148,7 @@ module Syntax (
 
     -- END QUANTIFIER ========================================================
 
-    checkEnd ts = ([createAstNode AstError ts []] , [])
+    checkEnd ts = ([createAstNode AstError ts []] , []) -- TODO: AstError msg
 
     _isString :: AstFn
     _isString []     = checkEnd []

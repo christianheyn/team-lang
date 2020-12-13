@@ -55,6 +55,24 @@ module Tokenizer.RegexSpec where
                 expected = True
             actual `shouldBe` expected
 
+    checkUnresolvedComplexNumber n = do
+        it n $ do
+            let actual = _isUnresolvedComplexNumber $ L.pack n
+                expected = True
+            actual `shouldBe` expected
+
+    checkNotUnresolvedComplexNumber n m = do
+        it ("NOT: " ++ n) $ do
+            let actual = _isUnresolvedComplexNumber m
+                expected = False
+            actual `shouldBe` expected
+
+    checkComplexNumber n = do
+        it n $ do
+            let actual = _isComplexNumber $ L.pack n
+                expected = True
+            actual `shouldBe` expected
+
     checkNotNumber n m = do
         it ("NOT: " ++ n) $ do
             let actual = _isNumber m
@@ -165,12 +183,6 @@ module Tokenizer.RegexSpec where
                 checkUnresolvedNumber "0."
                 checkUnresolvedNumber "23."
                 checkUnresolvedNumber "2/"
-                checkUnresolvedNumber "3+"
-                checkUnresolvedNumber "3+4"
-                checkUnresolvedNumber "-3+-4"
-                checkUnresolvedNumber "-3+-"
-                checkUnresolvedNumber "-3+-"
-                checkUnresolvedNumber "-3+-2."
                 checkNotUnresolvedNumber "00" "00"
                 checkNotUnresolvedNumber "00." "00."
                 checkNotUnresolvedNumber "023." "023."
@@ -178,7 +190,6 @@ module Tokenizer.RegexSpec where
                 checkNotUnresolvedNumber "0.7/" "0.7/"
                 checkNotUnresolvedNumber "7/09" "7/09"
                 checkNotUnresolvedNumber "7/09.5" "7/09.5"
-                checkNotUnresolvedNumber "3+5i" "3+5i"
                 checkNotUnresolvedNumber "7/09.5" "7/09.5"
 
             describe "_isNumber" $ do
@@ -199,10 +210,6 @@ module Tokenizer.RegexSpec where
                 checkNumber "-40/+70"
                 checkNumber "-40/-70"
                 checkNumber "1/-3"
-                checkNumber "-2+3i"
-                checkNumber "+2+-3i"
-                checkNumber "-2.0+-3.4i"
-                checkNumber "20+3.000i"
 
                 checkNotNumber "00.0" "00.0"
                 checkNotNumber "0123" "0123"
@@ -215,6 +222,20 @@ module Tokenizer.RegexSpec where
                 checkNotNumber "0/3" "0/3"
                 checkNotNumber "0.4/3" "0.4/3"
                 checkNotNumber "2/3.5" "2/3.5"
+
+            describe "_isUnresolvedComplexNumber" $ do
+                checkUnresolvedComplexNumber "3+"
+                checkUnresolvedComplexNumber "3+4"
+                checkUnresolvedComplexNumber "-3+-4"
+                checkUnresolvedComplexNumber "-3+-"
+                checkUnresolvedComplexNumber "-3+-"
+                checkUnresolvedComplexNumber "-3+-2."
+
+            describe "_isComplexNumber" $ do
+                checkComplexNumber "-2+3i"
+                checkComplexNumber "+2+-3i"
+                checkComplexNumber "-2.0+-3.4i"
+                checkComplexNumber "20+3.000i"
 
             describe "_endingChars" $ do
                 it "test\"" $ do

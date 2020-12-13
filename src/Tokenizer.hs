@@ -9,6 +9,8 @@ module Tokenizer (
     , _endingChars
     , _isNumber
     , _isUnresolvedNumber
+    , _isComplexNumber
+    , _isUnresolvedComplexNumber
     , _isType
     , _isSymbol
     , _isProp
@@ -81,14 +83,22 @@ module Tokenizer (
                                     <> _naturalReg
                                     <> ")|("
                                     <> _rationlReg
-                                    <> ")|("
-                                    <> _complexReg
                                     <> "))$"
                                  )
 
     _isUnresolvedNumber :: L.ByteString -> Bool
     _isUnresolvedNumber "" = False
     _isUnresolvedNumber x  = _noNewlineStart x && _noSenslessZero_ x && match x
+        where match = matchRegex "^((\\-?)([0-9]{1,})(\\.{1}|\\/{1}))$"
+
+    _isComplexNumber :: L.ByteString -> Bool
+    _isComplexNumber ""  = False
+    _isComplexNumber x   = _noNewlineStart x && _noSenslessZero_ x && match x
+        where match = matchRegex ("^(" <> _complexReg <> ")$")
+
+    _isUnresolvedComplexNumber :: L.ByteString -> Bool
+    _isUnresolvedComplexNumber "" = False
+    _isUnresolvedComplexNumber x  = _noNewlineStart x && _noSenslessZero_ x && match x
         where match = matchRegex (
                                     "^((\\-?)([0-9]{1,})(\\.{1}|\\/{1})|("
                                     <> _complexReg'
@@ -182,7 +192,7 @@ module Tokenizer (
         | T_Type
         | T_MaybeType
         | T_Number
-        | T_ComplexNumber -- TODO
+        | T_ComplexNumber
         | T_String
         | T_BooleanTrue
         | T_BooleanFalse
@@ -253,34 +263,37 @@ module Tokenizer (
 
     -- step 2
     predicateToType = [
-          (_isNewline,              T_Newline)
-        , (_isSpace,                T_Space)
+          (_isNewline,                 T_Newline)
+        , (_isSpace,                   T_Space)
 
-        , (_isType,                 T_Type)
-        , (_isSymbol,               T_Symbol)
-        , (_isProp,                 T_Prop)
-        , (_isEnumMember,           T_EnumMember)
-        , (_isReferenceDot,         T_ReferenceDot)
-        , (_isRestSpread,           T_RestSpread)
+        , (_isType,                    T_Type)
+        , (_isSymbol,                  T_Symbol)
+        , (_isProp,                    T_Prop)
+        , (_isEnumMember,              T_EnumMember)
+        , (_isReferenceDot,            T_ReferenceDot)
+        , (_isRestSpread,              T_RestSpread)
 
-        , (_isOpenSquareBracket,    T_OpenSquareBracket)
-        , (_isClosingSquareBracket, T_ClosingSquareBracket)
+        , (_isOpenSquareBracket,       T_OpenSquareBracket)
+        , (_isClosingSquareBracket,    T_ClosingSquareBracket)
 
-        , (_isOpenCurlyBracket,     T_OpenCurlyBracket)
-        , (_isClosingCurlyBracket,  T_ClosingCurlyBracket)
+        , (_isOpenCurlyBracket,        T_OpenCurlyBracket)
+        , (_isClosingCurlyBracket,     T_ClosingCurlyBracket)
 
-        , (_isOpenRoundBracket,     T_OpenRoundBracket)
-        , (_isClosingRoundBracket,  T_ClosingRoundBracket)
+        , (_isOpenRoundBracket,        T_OpenRoundBracket)
+        , (_isClosingRoundBracket,     T_ClosingRoundBracket)
 
-        , (_isUnresolvedNumber,     T_Number)
-        , (_isNumber,               T_Number)
+        , (_isUnresolvedNumber,        T_Number)
+        , (_isNumber,                  T_Number)
 
-        , (_isString,               T_String)
-        , (_isUnresolvedString,     T_String)
+        , (_isUnresolvedComplexNumber, T_ComplexNumber)
+        , (_isComplexNumber,           T_ComplexNumber)
 
-        , (_isComment,              T_Comment)
-        , (_isSemicolon,            T_Semicolon)
-        , (_isSeparator,            T_Separator)
+        , (_isString,                  T_String)
+        , (_isUnresolvedString,        T_String)
+
+        , (_isComment,                 T_Comment)
+        , (_isSemicolon,               T_Semicolon)
+        , (_isSeparator,               T_Separator)
         ]
 
 

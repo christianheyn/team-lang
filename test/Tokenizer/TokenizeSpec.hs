@@ -76,7 +76,7 @@ module Tokenizer.TokenizeSpec where
             testTokenize "(+ 2+3i 3)" [
                   (T_OpenRoundBracket, "(", 0)
                 , (T_Symbol, "+", 1)
-                , (T_Number, "2+3i", 3)
+                , (T_ComplexNumber, "2+3i", 3)
                 , (T_Number, "3", 5)
                 , (T_ClosingRoundBracket, ")", 6)
                 ]
