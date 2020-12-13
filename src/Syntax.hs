@@ -12,13 +12,13 @@ module Syntax (
     , isEnumValue
     , isTemplateType
     , isPropListType
+    , isJsonType
     , isClass
     , isTypeDefinition
     , hasAstError
     , AST_NODE_TYPE(..)
     , AST_NODE(..)
     ) where
-
 
     import Tokenizer (
           generateTokens
@@ -42,6 +42,9 @@ module Syntax (
         | AstMaybeType          -- maybe T
         | AstFunctionType       -- {T -> U}
         | AstListType           -- [T]
+        | AstJsonType           -- { "key" Value "key2" { "key3" String } "key4" [Number] }
+        | AstJsonKeyValueType   -- "key" Value
+        | AstJsonArrayType      -- [T]
         | AstClassFunction      -- fmap <U> {T -> U} -> [T] -> [U]
         | AstClass              -- class Functor <T> { fmap <U> {T -> U} -> [T] -> [U] }
         | AstProp               -- a:
@@ -146,6 +149,13 @@ module Syntax (
     -- END QUANTIFIER ========================================================
 
     checkEnd ts = ([createAstNode AstError ts []] , [])
+
+    _isString :: AstFn
+    _isString []     = checkEnd []
+    _isString (t:ts) =
+        if (_TType t == T_String)
+        then ([createAstNode AstPrimitiv [t] []], ts)
+        else checkEnd [t]
 
     _isPrimitive :: AstFn
     _isPrimitive []     = checkEnd []
@@ -449,7 +459,13 @@ module Syntax (
             ]
         ]
 
-        where allTypes = qOr [_isType, isFunctionTypeDef, isListType, isPropListType, isMaybeType]
+        where allTypes = qOr [
+                              _isType
+                            , isFunctionTypeDef
+                            , isListType
+                            , isPropListType
+                            , isMaybeType
+                            , isJsonType]
 
     isFunctionTypeDef :: AstFn -- {T -> {T -> U} -> U}
     isFunctionTypeDef = withCurlyGroup AstFunctionType [isArrowTypes]
@@ -474,6 +490,36 @@ module Syntax (
         where (nodes, restTokens) = isArrowTypes tokens
               hasError = hasAstError nodes
               astResult = createAstNode AstTypeDefinition [] nodes
+
+    _isJsonKeyValue tokens =
+        if hasError
+        then (nodes, [])
+        else ([astResult], restTokens)
+        where (nodes, restTokens) = qExact [
+                                              _isString
+                                            , qOr [
+                                                  isJsonArray
+                                                , isJsonType
+                                                , _isType]
+                                            ] tokens
+              hasError = hasAstError nodes
+              astResult = createAstNode AstJsonKeyValueType [] nodes
+
+    isJsonArray :: AstFn
+    isJsonArray tokens =
+        if hasError
+        then (nodes, [])
+        else ([astResult], restTokens)
+        where (nodes, restTokens) = qExact [
+                      _isOpenSquare
+                    , qOr [_isType, isJsonArray, isJsonType]
+                    , _isClosingSquare] tokens
+              innerNodes = (init . tail) nodes
+              hasError = hasAstError nodes
+              astResult = createAstNode AstJsonArrayType [] innerNodes
+
+    isJsonType :: AstFn
+    isJsonType = withCurlyGroup AstJsonType [qZeroOrMore [_isJsonKeyValue]]
 
     isClassFunction :: AstFn
     isClassFunction tokens =

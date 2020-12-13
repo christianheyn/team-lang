@@ -120,3 +120,36 @@ T -> @{T -> T} -> [T]
 
 
 (fun add2+n+n+n (+ 2 @ @ @))
+
+(type UserJSON {
+    "name" String
+    "age" Number
+    "member" Bool
+    "info" { "msg" String }
+    })
+
+(let
+    (var Number   a 2)
+    (var [Number] l [1 2 3])
+    (var f {(x) (+ x 1)})
+    (enum E :e :f :g)
+    (type A [a: Number, b: String])
+    (type UserJSON {
+                    "name" String
+                    "age" Number
+                    "member" Bool
+                    "info" Info
+                    })
+    (do
+        (print a)
+        (print (map f b))
+    )
+)
+
+{startServer Number -> Void
+    (port)
+    (server port
+        Server:get "/health" {() { "ok" true }}
+        Server:put "/hello" hello
+    )
+)

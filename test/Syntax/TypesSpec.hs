@@ -388,3 +388,106 @@ module Syntax.TypesSpec where
                         [])
 
                 actual `shouldBe` expected
+
+            it "{ \"key\" T }" $ do
+                let actual = isJsonType $ generateTokens "{ \"key\" T }"
+                    expected = ([
+                            AST_NODE {_astNodeType = AstJsonType, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstJsonKeyValueType, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstPrimitiv, _astTokens = [Token {_TType = T_String, _TValue = "\"key\"", _TIndex = 2}], _astChildren = []},
+                                    AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 4}], _astChildren = []}
+                                ]}
+                            ]}
+                        ],
+                        [])
+                actual `shouldBe` expected
+
+            it "{ \"key\" [T] }" $ do
+                let actual = isJsonType $ generateTokens "{ \"key\" [T] }"
+                    expected = ([
+                            AST_NODE {_astNodeType = AstJsonType, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstJsonKeyValueType, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstPrimitiv, _astTokens = [Token {_TType = T_String, _TValue = "\"key\"", _TIndex = 2}], _astChildren = []},
+                                    AST_NODE {_astNodeType = AstJsonArrayType, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 5}], _astChildren = []}
+                                    ]}
+                                ]}
+                            ]}
+                        ],
+                        [])
+                actual `shouldBe` expected
+
+            it "{ \"key\" { \"key2\" T } }" $ do
+                let actual = isJsonType $ generateTokens "{ \"key\" { \"key2\" T } }"
+                    expected = ([
+                            AST_NODE {_astNodeType = AstJsonType, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstJsonKeyValueType, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstPrimitiv, _astTokens = [Token {_TType = T_String, _TValue = "\"key\"", _TIndex = 2}], _astChildren = []},
+                                    AST_NODE {_astNodeType = AstJsonType, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstJsonKeyValueType, _astTokens = [], _astChildren = [
+                                            AST_NODE {_astNodeType = AstPrimitiv, _astTokens = [Token {_TType = T_String, _TValue = "\"key2\"", _TIndex = 6}], _astChildren = []},
+                                            AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 8}], _astChildren = []}
+                                        ]}
+                                    ]}
+                                ]}
+                            ]}
+                        ],
+                        [])
+                actual `shouldBe` expected
+
+            it "{ \"key\" [{ \"key2\" T }] }" $ do
+                let actual = isJsonType $ generateTokens "{ \"key\" [{ \"key2\" T }] }"
+                    expected = ([
+                            AST_NODE {_astNodeType = AstJsonType, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstJsonKeyValueType, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstPrimitiv, _astTokens = [Token {_TType = T_String, _TValue = "\"key\"", _TIndex = 2}], _astChildren = []},
+                                    AST_NODE {_astNodeType = AstJsonArrayType, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstJsonType, _astTokens = [], _astChildren = [
+                                            AST_NODE {_astNodeType = AstJsonKeyValueType, _astTokens = [], _astChildren = [
+                                                AST_NODE {_astNodeType = AstPrimitiv, _astTokens = [Token {_TType = T_String, _TValue = "\"key2\"", _TIndex = 7}], _astChildren = []},
+                                                AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 9}], _astChildren = []}
+                                            ]}
+                                        ]}
+                                    ]}
+                                ]}
+                            ]}
+                        ],
+                        [])
+                actual `shouldBe` expected
+
+            it "T -> { \"key\" [Number] }" $ do
+                let actual = isTypeDefinition $ generateTokens "T -> { \"key\" [Number] }"
+                    expected = ([
+                            AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 0}], _astChildren = []},
+                                AST_NODE {_astNodeType = AstJsonType, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstJsonKeyValueType, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstPrimitiv, _astTokens = [Token {_TType = T_String, _TValue = "\"key\"", _TIndex = 6}], _astChildren = []},
+                                        AST_NODE {_astNodeType = AstJsonArrayType, _astTokens = [], _astChildren = [
+                                            AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "Number", _TIndex = 9}], _astChildren = []}
+                                        ]}
+                                    ]}
+                                ]}
+                            ]}
+                        ],
+                        [])
+                actual `shouldBe` expected
+
+            it "T -> { \"key\" [imported.U] }" $ do
+                let actual = isTypeDefinition $ generateTokens "T -> { \"key\" [imported.U] }"
+                    expected = ([
+                            AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 0}], _astChildren = []},
+                                AST_NODE {_astNodeType = AstJsonType, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstJsonKeyValueType, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstPrimitiv, _astTokens = [Token {_TType = T_String, _TValue = "\"key\"", _TIndex = 6}], _astChildren = []},
+                                        AST_NODE {_astNodeType = AstJsonArrayType, _astTokens = [], _astChildren = [
+                                            AST_NODE {_astNodeType = AstImportedTypeSymbol, _astTokens = [Token {_TType = T_Symbol, _TValue = "imported", _TIndex = 9},Token {_TType = T_ReferenceDot, _TValue = ".", _TIndex = 10},Token {_TType = T_Type, _TValue = "U", _TIndex = 11}], _astChildren = []}
+                                        ]}
+                                    ]}
+                                ]}
+                            ]}
+                        ],
+                        [])
+
+                actual `shouldBe` expected
