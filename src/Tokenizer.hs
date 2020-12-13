@@ -13,7 +13,6 @@ module Tokenizer (
     , _isSymbol
     , _isProp
     , _isEnumMember
-    , _isNamedParameter
     , _isReferenceDot
     , _isRestSpread
     , _isOpenSquareBracket
@@ -154,10 +153,6 @@ module Tokenizer (
     _isEnumMember "" = False
     _isEnumMember x  = _noNewlineStart x && matchRegex "^(\\:){1}[-a-z_A-Z0-9]*$" x
 
-    _isNamedParameter :: L.ByteString -> Bool
-    _isNamedParameter "" = False
-    _isNamedParameter x  = _noNewlineStart x && matchRegex "^(\\:){1}[a-z_]+[-a-z_A-Z0-9]*$" x
-
     _isReferenceDot :: L.ByteString -> Bool
     _isReferenceDot "" = False
     _isReferenceDot x  = _noNewlineStart x && matchRegex "^(\\.){1}$" x
@@ -192,7 +187,6 @@ module Tokenizer (
         | T_BooleanTrue
         | T_BooleanFalse
         | T_Void
-        | T_NamedParameter
         | T_ReferenceDot
         | T_RestSpread
 
@@ -265,7 +259,6 @@ module Tokenizer (
         , (_isType,                 T_Type)
         , (_isSymbol,               T_Symbol)
         , (_isProp,                 T_Prop)
-        , (_isNamedParameter,       T_NamedParameter)
         , (_isEnumMember,           T_EnumMember)
         , (_isReferenceDot,         T_ReferenceDot)
         , (_isRestSpread,           T_RestSpread)

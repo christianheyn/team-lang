@@ -58,12 +58,12 @@ module Tokenizer.TokenizeSpec where
                 , (T_ClosingSquareBracket, "]", 9)
                 ]
 
-            testTokenize "{add (:x :y) (+ x y)}" [
+            testTokenize "{add (x y) (+ x y)}" [
                   (T_OpenCurlyBracket, "{", 0)
                 , (T_Symbol, "add", 1)
                 , (T_OpenRoundBracket, "(", 3)
-                , (T_NamedParameter, ":x", 4)
-                , (T_NamedParameter, ":y", 6)
+                , (T_Symbol, "x", 4)
+                , (T_Symbol, "y", 6)
                 , (T_ClosingRoundBracket, ")", 7)
                 , (T_OpenRoundBracket, "(", 9)
                 , (T_Symbol, "+", 10)

@@ -229,7 +229,7 @@ module Syntax (
     _isParameter :: AstFn
     _isParameter []     = checkEnd []
     _isParameter (t:ts) =
-        if (_TType t `elem` [T_Symbol, T_NamedParameter])
+        if (_TType t == T_Symbol) -- TODO: Default Paramter a = 8
         then ([createAstNode AstParameter [t] []], ts)
         else checkEnd [t]
 
@@ -317,7 +317,7 @@ module Syntax (
     _isEnumMember :: AstFn
     _isEnumMember []     = checkEnd []
     _isEnumMember (t:ts) =
-        if (_TType t `elem` [T_EnumMember, T_NamedParameter])
+        if (_TType t == T_EnumMember)
         then ([createAstNode AstEnumMember [t] []], ts)
         else checkEnd [t]
 

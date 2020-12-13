@@ -31,12 +31,6 @@ module Tokenizer.RegexSpec where
                 expected = True
             actual `shouldBe` expected
 
-    checkNamedParameter p = do
-        it p $ do
-            let actual = _isNamedParameter $ L.pack p
-                expected = True
-            actual `shouldBe` expected
-
     checkType t = do
         it t $ do
             let actual = _isType $ L.pack t
@@ -157,13 +151,6 @@ module Tokenizer.RegexSpec where
                 checkEnumMember ":a-b"
                 checkEnumMember ":a-2"
                 checkEnumMember ":1"
-
-            describe "_isNamedParameter" $ do
-                checkNamedParameter ":a"
-                checkNamedParameter ":a12"
-                checkNamedParameter ":_12a"
-                checkNamedParameter ":a-b"
-                checkNamedParameter ":a-3"
 
             describe "_isType" $ do
                 checkType "A"

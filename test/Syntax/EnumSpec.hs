@@ -17,7 +17,7 @@ module Syntax.EnumSpec where
                     expected = ([
                                 AST_NODE {_astNodeType = AstEnum, _astTokens = [], _astChildren = [
                                     AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 3}], _astChildren = []},
-                                    AST_NODE {_astNodeType = AstEnumMember, _astTokens = [Token {_TType = T_NamedParameter, _TValue = ":a", _TIndex = 5}], _astChildren = []}
+                                    AST_NODE {_astNodeType = AstEnumMember, _astTokens = [Token {_TType = T_EnumMember, _TValue = ":a", _TIndex = 5}], _astChildren = []}
                                 ]}
                             ],[])
                 actual `shouldBe` expected
@@ -27,7 +27,7 @@ module Syntax.EnumSpec where
                     expected = ([
                             AST_NODE {_astNodeType = AstEnumValue, _astTokens = [], _astChildren = [
                                 AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 0}], _astChildren = []},
-                                AST_NODE {_astNodeType = AstEnumMember, _astTokens = [Token {_TType = T_NamedParameter, _TValue = ":a", _TIndex = 1}], _astChildren = []}
+                                AST_NODE {_astNodeType = AstEnumMember, _astTokens = [Token {_TType = T_EnumMember, _TValue = ":a", _TIndex = 1}], _astChildren = []}
                             ]}
                         ],
                         [])
@@ -38,7 +38,7 @@ module Syntax.EnumSpec where
                     expected = ([
                             AST_NODE {_astNodeType = AstEnumValue, _astTokens = [], _astChildren = [
                                 AST_NODE {_astNodeType = AstImportedTypeSymbol, _astTokens = [Token {_TType = T_Symbol, _TValue = "imported", _TIndex = 0},Token {_TType = T_ReferenceDot, _TValue = ".", _TIndex = 1},Token {_TType = T_Type, _TValue = "T", _TIndex = 2}], _astChildren = []},
-                                AST_NODE {_astNodeType = AstEnumMember, _astTokens = [Token {_TType = T_NamedParameter, _TValue = ":a", _TIndex = 3}], _astChildren = []}
+                                AST_NODE {_astNodeType = AstEnumMember, _astTokens = [Token {_TType = T_EnumMember, _TValue = ":a", _TIndex = 3}], _astChildren = []}
                             ]}
                         ],
                         [])
