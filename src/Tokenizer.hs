@@ -218,7 +218,8 @@ module Tokenizer (
         -- step 2
         | T_Export
         | T_Import
-        | T_ImportAs
+        | T_As
+        | T_From
         | T_Let
         | T_Var
         | T_PropKeyword
@@ -347,7 +348,8 @@ module Tokenizer (
             , ((== "test"), T_Test)
             , ((== "export"), T_Export)
             , ((== "import"), T_Import)
-            , ((== "as"), T_ImportAs)
+            , ((== "as"), T_As)
+            , ((== "from"), T_From)
             , ((== "maybe"), T_MaybeType)
             , ((== "catch"), T_Catch)
             , ((== "do"), T_Do)

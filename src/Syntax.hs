@@ -16,6 +16,7 @@ module Syntax (
     , isClass
     , isTypeDefinition
     , isIfThenElse
+    , isImport
     , hasAstError
     , AST_NODE_TYPE(..)
     , AST_NODE(..)
@@ -64,6 +65,8 @@ module Syntax (
         | AstIfCondition        -- (if a then b else c)
         | AstOpen               -- ({[
         | AstClose              -- ]})
+        | AstImport
+        | AstImportAs
         | AstError
         deriving (Show, Eq)
 
@@ -591,3 +594,36 @@ module Syntax (
                       -- TODO: , isPropList
                       , isIfThenElse]
 
+    _isImport' :: AstFn -- import (a b c) from "./FeatureA.team"
+    _isImport' tokens =
+        if hasError
+        then (nodes, [])
+        else ([astResult], restTokens)
+        where (nodes, restTokens) = qExact [
+                                          _hasTokenType T_Import
+                                        , _isOpenRound
+                                        , qZeroOrMore [_isSymbol]
+                                        , _isClosingRound
+                                        , _hasTokenType T_From
+                                        , _isString
+                                        ] tokens
+              hasError = hasAstError nodes
+              astResult = createAstNode AstImport [] nodes
+
+    _isImportAs :: AstFn -- import as a from "./FeatureA.team"
+    _isImportAs tokens =
+        if hasError
+        then (nodes, [])
+        else ([astResult], restTokens)
+        where (nodes, restTokens) = qExact [
+                                          _hasTokenType T_Import
+                                        , _hasTokenType T_As
+                                        , _isSymbol
+                                        , _hasTokenType T_From
+                                        , _isString
+                                        ] tokens
+              hasError = hasAstError nodes
+              astResult = createAstNode AstImportAs [] nodes
+
+    isImport :: AstFn
+    isImport = qOr [_isImport', _isImportAs]
