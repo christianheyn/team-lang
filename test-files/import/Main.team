@@ -1,0 +1,20 @@
+import (fa fb fc) from "./FeatureA.team"
+import as b from "./FeatureB.team"
+
+{() (
+    if (fa)
+    then (fb)
+    else (fc)
+)}
+
+{() (
+    cond
+        condition then (f1)
+        condition then (f2)
+        condition then (f3)
+        otherwise (f4)
+)}
+
+{() (
+    when condition a
+)}

@@ -15,6 +15,7 @@ module Syntax (
     , isJsonType
     , isClass
     , isTypeDefinition
+    , isIfThenElse
     , hasAstError
     , AST_NODE_TYPE(..)
     , AST_NODE(..)
@@ -60,6 +61,7 @@ module Syntax (
         | AstFunctionBody
         | AstFunctionCall       -- (plus1 3)
         | AstList               -- [1 2 3 (+ 2 5)]
+        | AstIfCondition        -- (if a then b else c)
         | AstOpen               -- ({[
         | AstClose              -- ]})
         | AstError
@@ -154,6 +156,13 @@ module Syntax (
     _isString []     = checkEnd []
     _isString (t:ts) =
         if (_TType t == T_String)
+        then ([createAstNode AstPrimitiv [t] []], ts)
+        else checkEnd [t]
+
+    _isBool :: AstFn
+    _isBool []     = checkEnd []
+    _isBool (t:ts) =
+        if (_TType t `elem` [T_BooleanTrue, T_BooleanFalse])
         then ([createAstNode AstPrimitiv [t] []], ts)
         else checkEnd [t]
 
@@ -558,4 +567,27 @@ module Syntax (
 
     isPropListType :: AstFn -- [a: Numbe, b: String, c: imported.Type]
     isPropListType = withSquareGroup AstPropListType [qOneOrMore [isPropKeyValueType]]
+
+    isIfThenElse :: AstFn -- (if a then b else c)
+    isIfThenElse = withRoundGroup AstIfCondition [
+          _hasTokenType T_If
+        , qOr [
+              _isSymbol
+            , _isBool
+            , isFunctionCall
+            ]
+        , _hasTokenType T_Then
+        , x
+        , _hasTokenType T_Else
+        , x
+        ]
+        where x = qOr [
+                        _isSymbol
+                      , _isPrimitive
+                      , isFunctionCall
+                      , isLambda
+                      , isEnumValue
+                      , isList
+                      -- TODO: , isPropList
+                      , isIfThenElse]
 

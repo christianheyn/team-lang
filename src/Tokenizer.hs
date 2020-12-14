@@ -227,8 +227,10 @@ module Tokenizer (
         | T_EnumKeyword
         | T_Do
         | T_If
+        | T_Then
+        | T_Else
         | T_Catch
-        | T_TEST
+        | T_Test
         | T_Parallel
         | T_Concurrent
         | T_ArrowLeft
@@ -334,16 +336,18 @@ module Tokenizer (
 
     specialSymbolsPredicat = [
               ((== "if"), T_If)
+            , ((== "then"), T_Then)
+            , ((== "else"), T_Else)
             , ((== "let"), T_Let)
             , ((== "var"), T_Var)
             , ((== "prop"), T_PropKeyword)
             , ((== "type"), T_TypeKeyword)
             , ((== "class"), T_ClassKeyword)
             , ((== "enum"), T_EnumKeyword)
-            , ((== "test"), T_TEST)
+            , ((== "test"), T_Test)
             , ((== "export"), T_Export)
             , ((== "import"), T_Import)
-            , ((== "importAs"), T_ImportAs)
+            , ((== "as"), T_ImportAs)
             , ((== "maybe"), T_MaybeType)
             , ((== "catch"), T_Catch)
             , ((== "do"), T_Do)
