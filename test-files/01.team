@@ -128,14 +128,10 @@ T -> @{T -> T} -> [T]
     })
 
 (let
-    (var Number   a 2)
+    (var Number a 2)
     (var [Number] l [1 2 3])
     (var f {(x) (+ x 1)})
     (enum E :e :f :g)
-    (instance Functor Number {
-        { fmap (f n) (f n) }
-    )
-        
     (type A [a: Number, b: String])
     (type UserJSON {
                     "name" String
@@ -168,5 +164,5 @@ T -> @{T -> T} -> [T]
     otherwise "wrong number")
 
 test {
-    
+
 }

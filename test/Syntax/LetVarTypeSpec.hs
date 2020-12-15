@@ -93,3 +93,24 @@ module Syntax.LetVarTypeSpec where
                         ],
                         [])
                 actual `shouldBe` expected
+
+            it "(let {f () 3} (print a))" $ do
+                let actual = isLet $ generateTokens "(let {f () 3} (print a))"
+                    expected = ([
+                            AST_NODE {_astNodeType = AstLet, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstFunction, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstSymbol, _astTokens = [Token {_TType = T_Symbol, _TValue = "f", _TIndex = 4}], _astChildren = []},
+                                    AST_NODE {_astNodeType = AstParameterList, _astTokens = [], _astChildren = []},
+                                    AST_NODE {_astNodeType = AstFunctionBody, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstPrimitiv, _astTokens = [Token {_TType = T_Number, _TValue = "3", _TIndex = 9}], _astChildren = []}
+                                    ]}
+                                ]},
+                                AST_NODE {_astNodeType = AstFunctionCall, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstSymbol, _astTokens = [Token {_TType = T_Symbol, _TValue = "print", _TIndex = 13}], _astChildren = []},
+                                    AST_NODE {_astNodeType = AstSymbol, _astTokens = [Token {_TType = T_Symbol, _TValue = "a", _TIndex = 15}], _astChildren = []}
+                                ]}
+                            ]}
+                        ],
+                        [])
+
+                actual `shouldBe` expected

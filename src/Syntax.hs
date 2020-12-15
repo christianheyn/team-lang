@@ -332,10 +332,10 @@ module Syntax (
     isParamterList = withRoundGroup AstParameterList [qZeroOrMore [ _isParameter, isParamterList ]]
 
     isFunctionCall :: AstFn
-    isFunctionCall = withRoundGroup AstFunctionCall [_isSymbol, qZeroOrMore [ _isSymbol, _isPrimitive, isFunctionCall, isLambda ]]
+    isFunctionCall = withRoundGroup AstFunctionCall [_isSymbol, qZeroOrMore [ _isSymbol, _isPrimitive, isFunctionCall, isLambda, isPropList ]]
 
     isList :: AstFn
-    isList = withSquareGroup AstList [qZeroOrMore [isList, _isSymbol, _isPrimitive]]
+    isList = withSquareGroup AstList [qZeroOrMore [isList, _isSymbol, _isPrimitive, isPropList]]
 
     _isEnumMember :: AstFn
     _isEnumMember []     = checkEnd []
@@ -695,7 +695,11 @@ module Syntax (
     isLet :: AstFn
     isLet = withRoundGroup AstLet [
                                       _hasTokenType T_Let
-                                    , qOneOrMore [isTypeAlias, isVar, isEnum]
+                                    , qOneOrMore [
+                                          isTypeAlias
+                                        , isVar
+                                        , isEnum
+                                        , isFunction]
                                     , qOr [
                                             isFunctionCall
                                         , _isSymbol
