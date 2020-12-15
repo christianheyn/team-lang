@@ -20,6 +20,7 @@ module Syntax (
     , isLet
     , isVar
     , isTypeAlias
+    , isPropList
     , hasAstError
     , AST_NODE_TYPE(..)
     , AST_NODE(..)
@@ -56,6 +57,8 @@ module Syntax (
         | AstProp               -- a:
         | AstPropKeyValueType   -- a: Number
         | AstPropListType       -- [a: Number]
+        | AstPropKeyValue       -- [a: Number]
+        | AstPropList           -- [a: Number]
         | AstParameter          -- a
         | AstParameterList      -- (a b)
         | AstEnum               -- (enum Hallo :hi :hello :huhu)
@@ -518,21 +521,21 @@ module Syntax (
         where (nodes, restTokens) = qExact [
                                               _isString
                                             , qOr [
-                                                  isJsonArray
+                                                  isJsonArrayType
                                                 , isJsonType
                                                 , _isType]
                                             ] tokens
               hasError = hasAstError nodes
               astResult = createAstNode AstJsonKeyValueType [] nodes
 
-    isJsonArray :: AstFn
-    isJsonArray tokens =
+    isJsonArrayType :: AstFn
+    isJsonArrayType tokens =
         if hasError
         then (nodes, [])
         else ([astResult], restTokens)
         where (nodes, restTokens) = qExact [
                       _isOpenSquare
-                    , qOr [_isType, isJsonArray, isJsonType]
+                    , qOr [_isType, isJsonArrayType, isJsonType]
                     , _isClosingSquare] tokens
               innerNodes = (init . tail) nodes
               hasError = hasAstError nodes
@@ -581,7 +584,29 @@ module Syntax (
     isPropListType :: AstFn -- [a: Numbe, b: String, c: imported.Type]
     isPropListType = withSquareGroup AstPropListType [qOneOrMore [isPropKeyValueType]]
 
-    -- TODO: isPropList :: AstFn -- [a: 3 b: "5" c: void]
+    isPropKeyValue :: AstFn -- a: ""
+    isPropKeyValue tokens =
+        if hasError
+        then (nodes, [])
+        else ([astResult], restTokens)
+        where (nodes, restTokens) = qExact [
+                                              _isProp
+                                            , qOr [
+                                                  _isSymbol
+                                                , _isPrimitive
+                                                , isLambda
+                                                , _isEnumMember
+                                                , isIfThenElse
+                                                , isList
+                                                , isPropList
+                                                -- TODO: , isJson
+                                                ]] tokens
+              hasError = hasAstError nodes
+              astResult = createAstNode AstPropKeyValue [] nodes
+
+    isPropList :: AstFn -- [a: 3 b: "5" c: void]
+    isPropList = withSquareGroup AstPropList [qOneOrMore [isPropKeyValue]]
+
 
     isIfThenElse :: AstFn -- (if a then b else c)
     isIfThenElse = withRoundGroup AstIfCondition [
@@ -603,7 +628,7 @@ module Syntax (
                       , isLambda
                       , isEnumValue
                       , isList
-                      -- TODO: , isPropList
+                      , isPropList
                       , isIfThenElse]
 
     -- TODO: isSwitch :: AstFn -- (switch a (2 "two") (5 "five") otherwise "wrong number")
@@ -655,7 +680,7 @@ module Syntax (
                                         , isList
                                         , isFunctionCall
                                         , isIfThenElse
-                                        -- TODO: , isPropList
+                                        , isPropList
                                         -- TODO: , isJson
                                         ]
                                     ]
@@ -677,13 +702,12 @@ module Syntax (
                                         , isLambda
                                         , isIfThenElse
                                         , isList
-                                        -- TODO: , isPropList
+                                        , isPropList
                                         -- TODO: , isJson
                                         ]
                                     ]
 
     -- TODO: isProp -- (prop x a: 0 "key" "key2" 0)
-    -- TODO: isPropList
     -- TODO: isJson
     -- TODO: isSwitch
     -- TODO: isDO
@@ -703,3 +727,4 @@ module Syntax (
     -- TODO: isExport :: AstFn
 
     -- TODO: isTopLevel
+
