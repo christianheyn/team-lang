@@ -1,7 +1,7 @@
 import a b c "./utils.team"
 importAs tdd "./tdd.team"
 
-exportAll tdd
+export all tdd
 
 export (type MyType [a: Number b: String c: Bool])
 
@@ -98,10 +98,9 @@ class Functor <T> {
     fmap <U> {T -> U} -> [T] -> [U]
 }
 
-export instance Functor Number {
-    {fmap (fn n) (fn n)}
-}
-
+instance Functor Number {
+    {fmap (f n) (f n)}
+} 
 
 Number -> {Maybe -> Number Void}
 
@@ -133,6 +132,10 @@ T -> @{T -> T} -> [T]
     (var [Number] l [1 2 3])
     (var f {(x) (+ x 1)})
     (enum E :e :f :g)
+    (instance Functor Number {
+        { fmap (f n) (f n) }
+    )
+        
     (type A [a: Number, b: String])
     (type UserJSON {
                     "name" String
@@ -153,3 +156,17 @@ T -> @{T -> T} -> [T]
         Server:put "/hello" hello
     )
 )
+
+(var Number a (if (< b 3)
+               then 4
+               else 2))
+
+(switch a
+    (4 "four")
+    (5 "five")
+    (6 "six")
+    otherwise "wrong number")
+
+test {
+    
+}

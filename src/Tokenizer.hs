@@ -240,13 +240,10 @@ module Tokenizer (
         | T_FlagProject
         | T_FlagHotfix
         | T_FlagPlugin
-        | T_FlagModule
-        | T_FlagLibrary
         | T_FlagFramework
         | T_FlagUtil
         | T_FlagConfig
         | T_FlagPrototype
-        | T_FlagResearch
         | T_FlagTBD
         | T_FlagDeprecated
 
@@ -298,7 +295,6 @@ module Tokenizer (
         , (_isSemicolon,               T_Semicolon)
         , (_isSeparator,               T_Separator)
         ]
-
 
     _combineToken_ ::
            L.ByteString
@@ -363,13 +359,10 @@ module Tokenizer (
             , ((== "project"), T_FlagProject)
             , ((== "hotfix"), T_FlagHotfix)
             , ((== "plugin"), T_FlagPlugin)
-            , ((== "module"), T_FlagModule)
-            , ((== "library"), T_FlagLibrary)
             , ((== "framework"), T_FlagFramework)
             , ((== "util"), T_FlagUtil)
             , ((== "config"), T_FlagConfig)
             , ((== "prototype"), T_FlagPrototype)
-            , ((== "research"), T_FlagResearch)
             , ((== "tbd"), T_FlagTBD)
             , ((== "deprecated"), T_FlagDeprecated)
             ]

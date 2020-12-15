@@ -17,6 +17,9 @@ module Syntax (
     , isTypeDefinition
     , isIfThenElse
     , isImport
+    , isLet
+    , isVar
+    , isTypeAlias
     , hasAstError
     , AST_NODE_TYPE(..)
     , AST_NODE(..)
@@ -36,6 +39,7 @@ module Syntax (
     data AST_NODE_TYPE =
           AstPrimitiv           -- 3 , "string", true
         | AstSymbol             -- a
+        | AstTypeAlias          -- (type J { "a" Number })
         | AstTypeDefinition     -- <T> <U> T -> {T -> [U]}
         | AstTypeSymbol         -- T
         | AstImportedTypeSymbol -- tdd.Test
@@ -63,6 +67,8 @@ module Syntax (
         | AstFunctionCall       -- (plus1 3)
         | AstList               -- [1 2 3 (+ 2 5)]
         | AstIfCondition        -- (if a then b else c)
+        | AstVar                -- (var CNumber a 6+4i)
+        | AstLet                -- (let (type T [Number]) (var Number a 3) (print a))
         | AstOpen               -- ({[
         | AstClose              -- ]})
         | AstImport
@@ -114,7 +120,7 @@ module Syntax (
         else ([createAstNode AstError [] []], [])
         where results = map (\c -> c tokens) checks
               notEmpty (a, _) = ((not . null) a) && ((not . hasAstError) a)
-              match    = find notEmpty results -- TODO: Sort most ast nodes
+              match    = find notEmpty results
               (astNodes, nextTokens) = fromJust match
               (nextAstNodes, finalTokens) = qZeroOrMore' checks nextTokens
 
@@ -190,6 +196,8 @@ module Syntax (
         then ([createAstNode AstSymbol [t] []], ts)
         else checkEnd [t]
 
+    -- TODO: isImportedSymbol :: AstFn -- tdd.describe
+
     _isType' :: AstFn
     _isType' []     = checkEnd []
     _isType' (t:ts) =
@@ -241,7 +249,7 @@ module Syntax (
     _isParameter :: AstFn
     _isParameter []     = checkEnd []
     _isParameter (t:ts) =
-        if (_TType t == T_Symbol) -- TODO: Default Paramter a = 8
+        if (_TType t == T_Symbol)
         then ([createAstNode AstParameter [t] []], ts)
         else checkEnd [t]
 
@@ -533,6 +541,8 @@ module Syntax (
     isJsonType :: AstFn
     isJsonType = withCurlyGroup AstJsonType [qZeroOrMore [_isJsonKeyValue]]
 
+    --mTODO: isJson :: AstFn
+
     isClassFunction :: AstFn
     isClassFunction tokens =
         if hasError
@@ -571,6 +581,8 @@ module Syntax (
     isPropListType :: AstFn -- [a: Numbe, b: String, c: imported.Type]
     isPropListType = withSquareGroup AstPropListType [qOneOrMore [isPropKeyValueType]]
 
+    -- TODO: isPropList :: AstFn -- [a: 3 b: "5" c: void]
+
     isIfThenElse :: AstFn -- (if a then b else c)
     isIfThenElse = withRoundGroup AstIfCondition [
           _hasTokenType T_If
@@ -593,6 +605,8 @@ module Syntax (
                       , isList
                       -- TODO: , isPropList
                       , isIfThenElse]
+
+    -- TODO: isSwitch :: AstFn -- (switch a (2 "two") (5 "five") otherwise "wrong number")
 
     _isImport' :: AstFn -- import (a b c) from "./FeatureA.team"
     _isImport' tokens =
@@ -627,3 +641,65 @@ module Syntax (
 
     isImport :: AstFn
     isImport = qOr [_isImport', _isImportAs]
+
+    isVar :: AstFn
+    isVar = withRoundGroup AstVar [
+                                      _hasTokenType T_Var
+                                    , qOptional isTypeDefinition
+                                    , _isSymbol
+                                    , qOr [
+                                            _isSymbol
+                                        , _isPrimitive
+                                        , isLambda
+                                        , isEnumValue
+                                        , isList
+                                        , isFunctionCall
+                                        , isIfThenElse
+                                        -- TODO: , isPropList
+                                        -- TODO: , isJson
+                                        ]
+                                    ]
+
+    isTypeAlias :: AstFn
+    isTypeAlias = withRoundGroup AstTypeAlias [
+                                          _hasTokenType T_TypeKeyword
+                                        , _isType'
+                                        , isTypeDefinition
+                                        ]
+
+    isLet :: AstFn
+    isLet = withRoundGroup AstLet [
+                                      _hasTokenType T_Let
+                                    , qOneOrMore [isTypeAlias, isVar, isEnum]
+                                    , qOr [
+                                            isFunctionCall
+                                        , _isSymbol
+                                        , isLambda
+                                        , isIfThenElse
+                                        , isList
+                                        -- TODO: , isPropList
+                                        -- TODO: , isJson
+                                        ]
+                                    ]
+
+    -- TODO: isProp -- (prop x a: 0 "key" "key2" 0)
+    -- TODO: isPropList
+    -- TODO: isJson
+    -- TODO: isSwitch
+    -- TODO: isDO
+
+    -- TODO: isFeature :: AstFn
+    -- TODO: isProject :: AstFn
+    -- TODO: isHotfix :: AstFn
+    -- TODO: isUtil :: AstFn
+    -- TODO: isConfig :: AstFn
+    -- TODO: isPrototype :: AstFn
+    -- TODO: isTBD :: AstFn
+    -- TODO: isDeprecated :: AstFn
+    -- TODO: isPlugin :: AstFn
+
+    -- TODO: isTest :: AstFn
+
+    -- TODO: isExport :: AstFn
+
+    -- TODO: isTopLevel
