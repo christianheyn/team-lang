@@ -147,3 +147,17 @@ module Tokenizer.TokenizeSpec where
                 , (T_BooleanTrue, "true", 7)
                 , (T_ClosingRoundBracket, ")", 8)
                 ]
+
+            testTokenize "a = (/ (* 3 pi) e)" [
+                  (T_Symbol, "a", 0)
+                , (T_EqualSign, "=", 2)
+                , (T_OpenRoundBracket, "(", 4)
+                , (T_Symbol, "/", 5)
+                , (T_OpenRoundBracket, "(", 7)
+                , (T_Symbol, "*", 8)
+                , (T_Number, "3", 10)
+                , (T_Number, "pi", 12)
+                , (T_ClosingRoundBracket, ")", 13)
+                , (T_Number, "e", 15)
+                , (T_ClosingRoundBracket, ")", 16)
+                ]

@@ -371,6 +371,12 @@ module Tokenizer (
             , ((== "prototype"), T_FlagPrototype)
             , ((== "tbd"), T_FlagTBD)
             , ((== "deprecated"), T_FlagDeprecated)
+            , ((== "pi"), T_Number)
+            , ((== "pi'"), T_Number)
+            , ((== "pi''"), T_Number)
+            , ((== "e"), T_Number)
+            , ((== "e'"), T_Number)
+            , ((== "e''"), T_Number)
             ]
             ++ predicateToType
             ++ [((\_ -> True), T_Unknowen)]
