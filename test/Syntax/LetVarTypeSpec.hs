@@ -40,6 +40,38 @@ module Syntax.LetVarTypeSpec where
                         [])
                 actual `shouldBe` expected
 
+            it "var a b c Number = 3" $ do
+                let actual = isVar $ generateTokens "var a b c Number = 3"
+                    expected = ([
+                            AST_NODE {_astNodeType = AstVar, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstSymbol, _astTokens = [Token {_TType = T_Symbol, _TValue = "a", _TIndex = 2}], _astChildren = []},
+                                AST_NODE {_astNodeType = AstSymbol, _astTokens = [Token {_TType = T_Symbol, _TValue = "b", _TIndex = 4}], _astChildren = []},
+                                AST_NODE {_astNodeType = AstSymbol, _astTokens = [Token {_TType = T_Symbol, _TValue = "c", _TIndex = 6}], _astChildren = []},
+                                AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "Number", _TIndex = 8}], _astChildren = []}
+                                ]},
+                                AST_NODE {_astNodeType = AstPrimitiv, _astTokens = [Token {_TType = T_Number, _TValue = "3", _TIndex = 12}], _astChildren = []}
+                            ]}
+                        ],
+                        [])
+                actual `shouldBe` expected
+
+            it "a b c Number = 3" $ do
+                let actual = isVar $ generateTokens "a b c Number = 3"
+                    expected = ([
+                            AST_NODE {_astNodeType = AstVar, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstSymbol, _astTokens = [Token {_TType = T_Symbol, _TValue = "a", _TIndex = 0}], _astChildren = []},
+                                AST_NODE {_astNodeType = AstSymbol, _astTokens = [Token {_TType = T_Symbol, _TValue = "b", _TIndex = 2}], _astChildren = []},
+                                AST_NODE {_astNodeType = AstSymbol, _astTokens = [Token {_TType = T_Symbol, _TValue = "c", _TIndex = 4}], _astChildren = []},
+                                AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "Number", _TIndex = 6}], _astChildren = []}
+                                ]},
+                                AST_NODE {_astNodeType = AstPrimitiv, _astTokens = [Token {_TType = T_Number, _TValue = "3", _TIndex = 10}], _astChildren = []}
+                            ]}
+                        ],
+                        [])
+                actual `shouldBe` expected
+
             it "var a maybe Number = void" $ do
                 let actual = isVar $ generateTokens "var a maybe Number = void"
                     expected = ([
@@ -138,4 +170,36 @@ module Syntax.LetVarTypeSpec where
                             ]}
                         ],
                         [])
+                actual `shouldBe` expected
+
+            it "(let a = 3 T = [Number] b c d = \"text\" (print c))" $ do
+                let actual = isLet $ generateTokens "(let a = 3 T = [Number] b c d = \"text\" (print c))"
+                    expected = ([
+                            AST_NODE {_astNodeType = AstLet, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstVar, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstSymbol, _astTokens = [Token {_TType = T_Symbol, _TValue = "a", _TIndex = 3}], _astChildren = []},
+                                    AST_NODE {_astNodeType = AstPrimitiv, _astTokens = [Token {_TType = T_Number, _TValue = "3", _TIndex = 7}], _astChildren = []}
+                                ]},
+                                AST_NODE {_astNodeType = AstTypeAlias, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 9}], _astChildren = []},
+                                    AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstListType, _astTokens = [], _astChildren = [
+                                            AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "Number", _TIndex = 14}], _astChildren = []}
+                                        ]}
+                                    ]}
+                                ]},
+                                AST_NODE {_astNodeType = AstVar, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstSymbol, _astTokens = [Token {_TType = T_Symbol, _TValue = "b", _TIndex = 17}], _astChildren = []},
+                                    AST_NODE {_astNodeType = AstSymbol, _astTokens = [Token {_TType = T_Symbol, _TValue = "c", _TIndex = 19}], _astChildren = []},
+                                    AST_NODE {_astNodeType = AstSymbol, _astTokens = [Token {_TType = T_Symbol, _TValue = "d", _TIndex = 21}], _astChildren = []},
+                                    AST_NODE {_astNodeType = AstPrimitiv, _astTokens = [Token {_TType = T_String, _TValue = "\"text\"", _TIndex = 25}], _astChildren = []}
+                                ]},
+                                AST_NODE {_astNodeType = AstFunctionCall, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstSymbol, _astTokens = [Token {_TType = T_Symbol, _TValue = "print", _TIndex = 28}], _astChildren = []},
+                                    AST_NODE {_astNodeType = AstSymbol, _astTokens = [Token {_TType = T_Symbol, _TValue = "c", _TIndex = 30}], _astChildren = []}
+                                ]}
+                            ]}
+                        ],
+                        [])
+
                 actual `shouldBe` expected

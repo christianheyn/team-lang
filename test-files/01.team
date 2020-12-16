@@ -115,7 +115,7 @@ T -> @{T -> T} -> [T]
 {+, @Number -> Number, (@ns) ()}
 {+, @CNumber -> CNumber, (@ns) ()}
 
-{n+cn CNumber -> maybe Number -> CNumber (n cn) (+ (toComplex n) cn)}
+{n+cn CNumber -> Number -> CNumber (n cn) (+ (toComplex n) cn)}
 
  { T -> U }
 (fun add2+n+n+n (+ 2 @ @ @))
@@ -127,19 +127,16 @@ type UserJSON {
     "info" { "msg" String }
     }
 
-type Prop = <T><U> lens {T -> U} 
-
-either Number Null
+type Prop <T><U> Prop {T -> Maybe U}
 
 (let
     {f1 () ()}
     var a Number = 2
-    var tuple (Number Number String) = 1 2 "text"
-    var l [maybe Number] = [1 2 3 void]
+    var l [Number] = [1 2 3 void]
     var f Number -> Number = {(x) (+ x 1)}
     var f Number -> String = (<<< f3 f2 f1)
     var f Number -> String = (>>> f1 f2 f3)
-    var userMsg Prop = (==> "info" "msg")
+    var userMsg Prop = (lens "info" "msg")
     enum E = :e = 3 :f = 2 :g = 5
     var x E = E:e
     type A = [a: Number, b: String]

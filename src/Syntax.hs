@@ -162,8 +162,6 @@ module Syntax (
     qOr :: [AstFn] -> AstFn
     qOr checks = qOr' checks
 
-    -- qNotThisButThat :: AstFn -> AstFn -> AstFn
-
     -- END QUANTIFIER ========================================================
 
     checkEnd ts = ([createAstNode AstError ts []] , []) -- TODO: AstError msg
@@ -683,7 +681,7 @@ module Syntax (
     isVar :: AstFn
     isVar = withGroup AstVar [
                               qOptional $ _hasTokenType T_Var
-                            , _isSymbol
+                            , qOneOrMore [_isSymbol]
                             , qOptional isTypeDefinition
                             , _hasTokenType T_EqualSign
                             , qOr [
@@ -739,9 +737,7 @@ module Syntax (
                                         -- TODO: , isJson
                                         ]
                                     ]
-
-    -- TODO: isTuple -- a = 1 2 3
-    -- TODO: isProp -- (prop a: 0 "key" "key2" 0)
+    -- TODO: isProp -- (prop x a: 0 "key" "key2" 0)
     -- TODO: isJson
     -- TODO: isSwitch
     -- TODO: isDO
