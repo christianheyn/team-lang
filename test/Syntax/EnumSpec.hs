@@ -12,14 +12,26 @@ module Syntax.EnumSpec where
     spec :: Spec
     spec = do
         describe "Syntax for Enum" $ do
-            it "(enum T :a)" $ do
-                let actual = isEnum $ generateTokens "(enum T :a)"
+            it "enum T = :a" $ do
+                let actual = isEnum $ generateTokens "enum T = :a"
                     expected = ([
-                                AST_NODE {_astNodeType = AstEnum, _astTokens = [], _astChildren = [
-                                    AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 3}], _astChildren = []},
-                                    AST_NODE {_astNodeType = AstEnumMember, _astTokens = [Token {_TType = T_EnumMember, _TValue = ":a", _TIndex = 5}], _astChildren = []}
-                                ]}
-                            ],[])
+                            AST_NODE {_astNodeType = AstEnum, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 2}], _astChildren = []},
+                                AST_NODE {_astNodeType = AstEnumMember, _astTokens = [Token {_TType = T_EnumMember, _TValue = ":a", _TIndex = 6}], _astChildren = []}
+                            ]}
+                        ],
+                        [])
+                actual `shouldBe` expected
+
+            it "T = :a" $ do
+                let actual = isEnum $ generateTokens "T = :a"
+                    expected = ([
+                            AST_NODE {_astNodeType = AstEnum, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 0}], _astChildren = []},
+                                AST_NODE {_astNodeType = AstEnumMember, _astTokens = [Token {_TType = T_EnumMember, _TValue = ":a", _TIndex = 4}], _astChildren = []}
+                            ]}
+                        ],
+                        [])
                 actual `shouldBe` expected
 
             it "T:a" $ do

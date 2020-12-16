@@ -70,7 +70,9 @@ module Syntax (
         | AstFunctionCall       -- (plus1 3)
         | AstList               -- [1 2 3 (+ 2 5)]
         | AstIfCondition        -- (if a then b else c)
-        | AstVar                -- (var CNumber a 6+4i)
+        | AstVar                -- var a CNumber = 6+4i)
+        | AstComp               -- comp f = f3 f2 f1
+        | AstPipe               -- pipe f = f1 f2 f3
         | AstLet                -- (let (type T [Number]) (var Number a 3) (print a))
         | AstOpen               -- ({[
         | AstClose              -- ]})
@@ -298,6 +300,15 @@ module Syntax (
         then ([createAstNode AstClose [t] []], ts)
         else checkEnd [t]
 
+    withGroup :: AST_NODE_TYPE -> [AstFn] -> AstFn
+    withGroup t checks tokens =
+        if hasError
+        then (nodes, [])
+        else ([astResult], restTokens)
+        where (nodes, restTokens) = qExact checks tokens
+              hasError = hasAstError nodes
+              astResult = createAstNode t [] nodes
+
     withRoundGroup :: AST_NODE_TYPE -> [AstFn] -> AstFn
     withRoundGroup t checks tokens =
         if hasError
@@ -345,11 +356,11 @@ module Syntax (
         else checkEnd [t]
 
     isEnum :: AstFn
-    isEnum = withRoundGroup AstEnum [
-          _hasTokenType T_EnumKeyword
+    isEnum = withGroup AstEnum [
+          qOptional $ _hasTokenType T_EnumKeyword
         , _isType
-        , qExact [_isEnumMember]
-        , qZeroOrMore [ _isEnumMember ]
+        , _hasTokenType T_EqualSign
+        , qOneOrMore [_isEnumMember]
         ]
 
     isEnumValue :: AstFn
@@ -668,29 +679,43 @@ module Syntax (
     isImport = qOr [_isImport', _isImportAs]
 
     isVar :: AstFn
-    isVar = withRoundGroup AstVar [
-                                      _hasTokenType T_Var
-                                    , qOptional isTypeDefinition
-                                    , _isSymbol
-                                    , qOr [
-                                            _isSymbol
-                                        , _isPrimitive
-                                        , isLambda
-                                        , isEnumValue
-                                        , isList
-                                        , isFunctionCall
-                                        , isIfThenElse
-                                        , isPropList
-                                        -- TODO: , isJson
-                                        ]
-                                    ]
+    isVar = withGroup AstVar [
+                              qOptional $ _hasTokenType T_Var
+                            , qOneOrMore [_isSymbol]
+                            , qOptional isTypeDefinition
+                            , _hasTokenType T_EqualSign
+                            , qOr [
+                                    _isSymbol
+                                , _isPrimitive
+                                , isLambda
+                                , isEnumValue
+                                , isList
+                                , isFunctionCall
+                                , isIfThenElse
+                                , isPropList
+                                -- TODO: , isJson
+                                ]
+                            ]
 
     isTypeAlias :: AstFn
-    isTypeAlias = withRoundGroup AstTypeAlias [
-                                          _hasTokenType T_TypeKeyword
+    isTypeAlias = withGroup AstTypeAlias [
+                                          qOptional $ _hasTokenType T_TypeKeyword
                                         , _isType'
+                                        , _hasTokenType T_EqualSign
                                         , isTypeDefinition
                                         ]
+
+    isComposition :: AstFn
+    isComposition = withGroup AstComp [
+                                          _hasTokenType T_CompositionKeyword
+                                        , qOneOrMore [_isSymbol, isLambda]
+                                        ]
+
+    isPipe :: AstFn
+    isPipe = withGroup AstPipe [
+                                    _hasTokenType T_CompositionKeyword
+                                , qOneOrMore [_isSymbol, isLambda]
+                                ]
 
     isLet :: AstFn
     isLet = withRoundGroup AstLet [
@@ -699,6 +724,8 @@ module Syntax (
                                           isTypeAlias
                                         , isVar
                                         , isEnum
+                                        , isComposition
+                                        , isPipe
                                         , isFunction]
                                     , qOr [
                                             isFunctionCall
@@ -710,7 +737,6 @@ module Syntax (
                                         -- TODO: , isJson
                                         ]
                                     ]
-
     -- TODO: isProp -- (prop x a: 0 "key" "key2" 0)
     -- TODO: isJson
     -- TODO: isSwitch

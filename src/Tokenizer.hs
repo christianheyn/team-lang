@@ -216,6 +216,7 @@ module Tokenizer (
         | T_Semicolon
 
         -- step 2
+        | T_EqualSign
         | T_Export
         | T_Import
         | T_As
@@ -235,6 +236,8 @@ module Tokenizer (
         | T_Parallel
         | T_Concurrent
         | T_ArrowLeft
+        | T_CompositionKeyword
+        | T_PipeKeyword
 
         | T_FlagFeature
         | T_FlagProject
@@ -332,13 +335,16 @@ module Tokenizer (
                            else _untilType_ fs x
 
     specialSymbolsPredicat = [
-              ((== "if"), T_If)
+              ((== "="), T_EqualSign)
+            , ((== "if"), T_If)
             , ((== "then"), T_Then)
             , ((== "else"), T_Else)
             , ((== "let"), T_Let)
             , ((== "var"), T_Var)
             , ((== "prop"), T_PropKeyword)
             , ((== "type"), T_TypeKeyword)
+            , ((== "<<<"), T_CompositionKeyword)
+            , ((== ">>>"), T_PipeKeyword)
             , ((== "class"), T_ClassKeyword)
             , ((== "enum"), T_EnumKeyword)
             , ((== "test"), T_Test)
@@ -388,4 +394,5 @@ module Tokenizer (
                 , _TType t /= T_Newline
                 , _TType t /= T_Comment
                 , _TType t /= T_Separator
+                , _TType t /= T_Semicolon
                 ]

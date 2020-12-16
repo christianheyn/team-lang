@@ -104,10 +104,10 @@ instance Functor Number {
 
 Number -> {Maybe -> Number Void}
 
-[a: maybe T -> Number b: Void]
+[a: Maybe T -> Number b: Void]
 
 tbd {f
-    <T> maybe Number -> maybe T -> Number -> @Number -> @tdd.Number
+    <T> Maybe Number -> Maybe T -> Number -> @Number -> @tdd.Number
 }
 
 T -> @{T -> T} -> [T]
@@ -117,33 +117,42 @@ T -> @{T -> T} -> [T]
 
 {n+cn CNumber -> Number -> CNumber (n cn) (+ (toComplex n) cn)}
 
-
+ { T -> U }
 (fun add2+n+n+n (+ 2 @ @ @))
 
-(type UserJSON {
+type UserJSON {
     "name" String
     "age" Number
     "member" Bool
     "info" { "msg" String }
-    })
+    }
+
+type Prop <T><U> Prop {T -> Maybe U}
 
 (let
-    (var Number a 2)
-    (var [Number] l [1 2 3])
-    (var f {(x) (+ x 1)})
-    (enum E :e :f :g)
-    (type A [a: Number, b: String])
-    (type UserJSON {
+    {f1 () ()}
+    var a Number = 2
+    var l [Number] = [1 2 3 void]
+    var f Number -> Number = {(x) (+ x 1)}
+    var f Number -> String = (<<< f3 f2 f1)
+    var f Number -> String = (>>> f1 f2 f3)
+    var userMsg Prop = (lens "info" "msg")
+    enum E = :e = 3 :f = 2 :g = 5
+    var x E = E:e
+    type A = [a: Number, b: String]
+    type UserJSON = {
                     "name" String
                     "age" Number
                     "member" Bool
                     "info" Info
-                    })
+                    }
     (do
         (print a)
         (print (map f b))
     )
 )
+
+{main () (print a)}
 
 {startServer Number -> Void
     (port)

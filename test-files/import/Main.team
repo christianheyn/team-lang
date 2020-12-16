@@ -1,8 +1,8 @@
 import (fa fb fc) from "./FeatureA.team"
-import as b from "./FeatureB.team"
+import as _B from "./FeatureB.team"
 
 {() (
-    if (fa)
+    if (_B.f)
     then (fb)
     else (fc)
 )}
