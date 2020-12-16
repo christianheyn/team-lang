@@ -152,7 +152,7 @@ module Tokenizer (
     _isSymbol :: L.ByteString -> Bool
     _isSymbol "" = False
     _isSymbol x  = _noNewlineStart x && matchRegex ("^(" <> reg1 <> "|" <> reg2 <> ")(')*$") x
-        where reg1 = "([-a-z_\\=\\~\\&\\|\\*\\+\\<\\>\\/\\?\\!\\$\\%]+[-a-z_0-9\\=\\~\\&\\|\\*\\+\\<\\>\\/\\?\\!\\$\\%]*)"
+        where reg1 = "([-a-z_\\=\\~\\&\\|\\*\\+\\<\\>\\/\\?\\!\\$\\%\\^]+[-a-z_0-9\\=\\~\\&\\|\\*\\+\\<\\>\\/\\?\\!\\$\\%\\^]*)"
               reg2 = "([-a-z_]+[-a-z_A-Z0-9]*)"
 
     _isProp :: L.ByteString -> Bool

@@ -148,6 +148,8 @@ module Tokenizer.RegexSpec where
                 checkSymbol "<>"
                 checkSymbol "abc<$$$>"
                 checkSymbol "-aBcD123"
+                checkSymbol "^"
+                checkSymbol "^^"
 
                 checkNotSymbol "<T>" "<T>"
                 checkNotSymbol "_23+-!$></Aa****%" "_23+-!$></Aa****%"
