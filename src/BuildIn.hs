@@ -7,46 +7,10 @@ module BuildIn (
 
     ) where
 
-buildIn = [
-      "let"
-    , "var"
-    , "type"
-    , "lens"
-    , "alias"
+    import Data.Number.CReal
 
-    , "true"
-    , "false"
+    e :: CReal
+    e = 2.7182818284590452353602874713526625
 
-    , "if"
-    , "cond"
-    , "do"
-
-    , "parallel"
-    , "concurrent"
-
-    -- Functions
-    , "throw"
-    , "and"
-    , "or"
-    , "some"
-
-    , "default"
-
-    , "head"
-    , "last"
-    , "tail"
-    , "init"
-
-    , "map"
-    , "mapi"
-    , "filter"
-    , "reduce"
-    , "equal"
-    , "isString"
-    , "isFloat"
-    , "isComplex"
-    , "isBoolean"
-    , "isNumber"
-    , "isFunction"
-    , "isLens"
-    ]
+    pi :: CReal
+    pi = 3.1415926535897932384626433832795028

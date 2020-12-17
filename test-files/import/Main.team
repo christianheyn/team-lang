@@ -1,14 +1,17 @@
+global alias tdd "./modules/tdd/"
+global alias utils "./helper/"
+
 import (fa fb fc) from "./FeatureA.team"
 import as _B from "./FeatureB.team"
 
-{() (
-    if (_B.f)
-    then (fb)
-    else (fc)
-)}
+{f (a)
+    if a
+        then (fb)
+        else (fc)
+}
 
-{() (
-    cond
+deprecated { s () (
+    when
         condition then (f1)
         condition then (f2)
         condition then (f3)
@@ -18,3 +21,41 @@ import as _B from "./FeatureB.team"
 {() (
     when condition a
 )}
+
+pi
+e
+
+fst snd trd
+
+mod
+sqrt
+round
+pow
+abs
+acos
+acosh
+asin
+asinh
+atan
+cbrt
+ceil
+cos
+cosh
+exp
+expml
+floor
+fround
+log
+log1p
+log10
+max
+min
+random
+sign
+sin
+sinh
+tan
+tanh
+trunc
+sqrt mod sqrt round
+pow
