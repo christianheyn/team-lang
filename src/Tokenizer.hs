@@ -238,6 +238,8 @@ module Tokenizer (
         | T_ArrowLeft
         | T_CompositionKeyword
         | T_PipeKeyword
+        | T_Pair
+        | T_Triple
 
         | T_FlagFeature
         | T_FlagProject
@@ -335,7 +337,11 @@ module Tokenizer (
                            else _untilType_ fs x
 
     specialSymbolsPredicat = [
-              ((== "="), T_EqualSign)
+              ((== "pair"), T_Pair)
+            , ((== "triple"), T_Triple)
+            , ((== "pi"), T_Number)
+            , ((== "e"), T_Number)
+            , ((== "="), T_EqualSign)
             , ((== "if"), T_If)
             , ((== "then"), T_Then)
             , ((== "else"), T_Else)
@@ -371,12 +377,7 @@ module Tokenizer (
             , ((== "prototype"), T_FlagPrototype)
             , ((== "tbd"), T_FlagTBD)
             , ((== "deprecated"), T_FlagDeprecated)
-            , ((== "pi"), T_Number)
-            , ((== "pi'"), T_Number)
-            , ((== "pi''"), T_Number)
-            , ((== "e"), T_Number)
-            , ((== "e'"), T_Number)
-            , ((== "e''"), T_Number)
+
             ]
             ++ predicateToType
             ++ [((\_ -> True), T_Unknowen)]

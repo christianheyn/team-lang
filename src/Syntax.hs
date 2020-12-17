@@ -1,6 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Syntax (
@@ -21,6 +20,7 @@ module Syntax (
     , isVar
     , isTypeAlias
     , isPropList
+    , isTuple
     , hasAstError
     , AST_NODE_TYPE(..)
     , AST_NODE(..)
@@ -32,10 +32,9 @@ module Syntax (
         , Token(..)
         )
     import GHC.Generics
-    import Data.Data (Typeable)
     import Data.List (find, null, or)
     import Data.Maybe (isJust, fromJust)
-    import Control.Lens
+    import Data.Number.CReal
 
     data AST_NODE_TYPE =
           AstPrimitiv           -- 3 , "string", true
@@ -59,6 +58,10 @@ module Syntax (
         | AstPropListType       -- [a: Number]
         | AstPropKeyValue       -- [a: Number]
         | AstPropList           -- [a: Number]
+        | AstPairType           -- (Number , String)
+        | AstTripleType         -- (Number , String, CNumber)
+        | AstPair               -- pair 1 "2"
+        | AstTriple             -- triple 1 "2" E:e
         | AstParameter          -- a
         | AstParameterList      -- (a b)
         | AstEnum               -- (enum Hallo :hi :hello :huhu)
@@ -319,6 +322,17 @@ module Syntax (
               hasError = hasAstError nodes
               astResult = createAstNode t [] innerNodes
 
+    withOptionalRoundGroup :: AST_NODE_TYPE -> [AstFn] -> AstFn
+    withOptionalRoundGroup t checks tokens =
+        if hasError
+        then (nodes, [])
+        else ([astResult], restTokens)
+        where (nodes, restTokens) = qOr [withRound, withoutRound] tokens
+              hasError = hasAstError nodes
+              astResult = createAstNode t [] nodes
+              withRound = qExact ([_hasTokenType T_OpenRoundBracket] ++ checks ++ [_hasTokenType T_ClosingRoundBracket])
+              withoutRound = qExact checks
+
     withCurlyGroup :: AST_NODE_TYPE -> [AstFn] -> AstFn
     withCurlyGroup t checks tokens =
         if hasError
@@ -499,6 +513,8 @@ module Syntax (
                             , isListType
                             , isPropListType
                             , isMaybeType
+                            , _isPairType
+                            , _isTripleType
                             , isJsonType]
 
     isFunctionTypeDef :: AstFn -- {T -> {T -> U} -> U}
@@ -618,9 +634,8 @@ module Syntax (
     isPropList :: AstFn -- [a: 3 b: "5" c: void]
     isPropList = withSquareGroup AstPropList [qOneOrMore [isPropKeyValue]]
 
-
-    isIfThenElse :: AstFn -- (if a then b else c)
-    isIfThenElse = withRoundGroup AstIfCondition [
+    isIfThenElse :: AstFn -- (if a then b else c), if a then b else c
+    isIfThenElse = withOptionalRoundGroup AstIfCondition [
           _hasTokenType T_If
         , qOr [
               _isSymbol
@@ -679,7 +694,7 @@ module Syntax (
     isImport = qOr [_isImport', _isImportAs]
 
     isVar :: AstFn
-    isVar = withGroup AstVar [
+    isVar = withOptionalRoundGroup AstVar [
                               qOptional $ _hasTokenType T_Var
                             , qOneOrMore [_isSymbol]
                             , qOptional isTypeDefinition
@@ -698,7 +713,7 @@ module Syntax (
                             ]
 
     isTypeAlias :: AstFn
-    isTypeAlias = withGroup AstTypeAlias [
+    isTypeAlias = withOptionalRoundGroup AstTypeAlias [
                                           qOptional $ _hasTokenType T_TypeKeyword
                                         , _isType'
                                         , _hasTokenType T_EqualSign
@@ -706,25 +721,24 @@ module Syntax (
                                         ]
 
     isComposition :: AstFn
-    isComposition = withGroup AstComp [
+    isComposition = withRoundGroup AstComp [
                                           _hasTokenType T_CompositionKeyword
                                         , qOneOrMore [_isSymbol, isLambda]
                                         ]
 
     isPipe :: AstFn
-    isPipe = withGroup AstPipe [
-                                    _hasTokenType T_CompositionKeyword
+    isPipe = withRoundGroup AstPipe [
+                                    _hasTokenType T_PipeKeyword
                                 , qOneOrMore [_isSymbol, isLambda]
                                 ]
 
     isLet :: AstFn
-    isLet = withRoundGroup AstLet [
+    isLet = withOptionalRoundGroup AstLet [
                                       _hasTokenType T_Let
                                     , qOneOrMore [
                                           isTypeAlias
                                         , isVar
                                         , isEnum
-                                        , isComposition
                                         , isPipe
                                         , isFunction]
                                     , qOr [
@@ -737,7 +751,52 @@ module Syntax (
                                         -- TODO: , isJson
                                         ]
                                     ]
-    -- TODO: isProp -- (prop x a: 0 "key" "key2" 0)
+
+    __tupleChildren = qOr [
+                          _isSymbol
+                        , isLambda
+                        , _isEnumMember
+                        , _isPrimitive
+                        -- TODO:, isJson
+                        , isPropList
+                        , isList
+                        , isTuple
+                        ]
+
+    _isPair :: AstFn
+    _isPair = withOptionalRoundGroup AstPair [
+                                      _hasTokenType T_Pair
+                                    , __tupleChildren
+                                    , __tupleChildren
+                                    ]
+    _isPairType :: AstFn
+    _isPairType = withRoundGroup AstPairType [
+                                      isTypeDefinitionWithoutTemplates
+                                    , isTypeDefinitionWithoutTemplates
+                                    ]
+
+    _isTriple :: AstFn
+    _isTriple = withOptionalRoundGroup AstTriple [
+                                      _hasTokenType T_Triple
+                                    , __tupleChildren
+                                    , __tupleChildren
+                                    , __tupleChildren
+                                    ]
+
+    _isTripleType :: AstFn
+    _isTripleType = withRoundGroup AstTripleType [
+                                      isTypeDefinitionWithoutTemplates
+                                    , isTypeDefinitionWithoutTemplates
+                                    , isTypeDefinitionWithoutTemplates
+                                    ]
+
+    isTuple = qOr [_isPair, _isTriple]
+    isTupleType = qOr [_isPairType, _isTripleType]
+
+
+    -- TODO: isNot -- not fn, (not fn)
+    -- TODO: isEither -- either T U
+    -- TODO: isLens -- (lens x a: 0 "key" "key2" 0)
     -- TODO: isJson
     -- TODO: isSwitch
     -- TODO: isDO
@@ -755,6 +814,8 @@ module Syntax (
     -- TODO: isTest :: AstFn
 
     -- TODO: isExport :: AstFn
+    -- TODO: isGlobal :: AstFn
+        -- TODO: isAlias :: AstFn
 
     -- TODO: isTopLevel
 

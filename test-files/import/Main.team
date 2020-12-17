@@ -1,20 +1,22 @@
+global alias tdd "./modules/tdd/"
+global alias utils "./helper/"
+
 import (fa fb fc) from "./FeatureA.team"
 import as _B from "./FeatureB.team"
 
-{() (
-    if (_B.f)
-    then (fb)
-    else (fc)
+feature {run () (print "RUN")}
+
+{askForTask () (do 
+    (print "What Task?")
+    (let input = (readLine)
+        (print input))
 )}
 
-{() (
-    cond
-        condition then (f1)
-        condition then (f2)
-        condition then (f3)
-        otherwise (f4)
-)}
+project {team-lang @Strings -> Void (@args) (
+    let var argLen = (length args)
+        var arg1 = (head args)
 
-{() (
-    when condition a
+        if (?and (not ?equals argLen 0) (?equals arg1 "execute") )
+            then (run)
+            else (askForTask)
 )}

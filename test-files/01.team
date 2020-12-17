@@ -1,5 +1,8 @@
-import a b c "./utils.team"
-importAs tdd "./tdd.team"
+global alias "tdd" "./modules/tdd/"
+global alias "util" "./helper/"
+
+import a b c from utils "utils.team"
+import as tdd from tdd "tdd.team"
 
 export all tdd
 
@@ -127,17 +130,19 @@ type UserJSON {
     "info" { "msg" String }
     }
 
-type Prop <T><U> Prop {T -> Maybe U}
+type Lens = <T> <U> lens { T -> U }
 
 (let
     {f1 () ()}
     var a Number = 2
     var l [Number] = [1 2 3 void]
+    var tuple (Number String) = pair 2 "text"
+    var tuple' (Number Number String) = triple 1 2 "text"
     var f Number -> Number = {(x) (+ x 1)}
     var f Number -> String = (<<< f3 f2 f1)
     var f Number -> String = (>>> f1 f2 f3)
-    var userMsg Prop = (lens "info" "msg")
-    enum E = :e = 3 :f = 2 :g = 5
+    var userMsg Lens = (lens "info" "msg")
+    enum E = :e :f :g
     var x E = E:e
     type A = [a: Number, b: String]
     type UserJSON = {
@@ -151,6 +156,8 @@ type Prop <T><U> Prop {T -> Maybe U}
         (print (map f b))
     )
 )
+
+(default x 3)
 
 {main () (print a)}
 

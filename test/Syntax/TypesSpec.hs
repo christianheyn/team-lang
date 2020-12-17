@@ -489,5 +489,89 @@ module Syntax.TypesSpec where
                             ]}
                         ],
                         [])
+                actual `shouldBe` expected
 
+            it "(T, U, V) -> (T, U)" $ do
+                let actual = isTypeDefinition $ generateTokens "(T, U, V) -> (T, U)"
+                    expected = ([
+                            AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstTripleType, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 1}], _astChildren = []}
+                                    ]},
+                                    AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "U", _TIndex = 4}], _astChildren = []}
+                                    ]},
+                                    AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "V", _TIndex = 7}], _astChildren = []}
+                                    ]}
+                                ]},
+                                AST_NODE {_astNodeType = AstPairType, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 13}], _astChildren = []}
+                                    ]},
+                                    AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "U", _TIndex = 16}], _astChildren = []}
+                                    ]}
+                                ]}
+                            ]}
+                        ],
+                        [])
+                actual `shouldBe` expected
+
+            it "(T, {U -> T}, maybe V) -> ((T, U), {(T, U) -> (T, U)})" $ do
+                let actual = isTypeDefinition $ generateTokens "(T, {U -> T}, maybe V) -> ((T, U), {(T, U) -> (T, U)})"
+                    expected = ([
+                            AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstTripleType, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 1}], _astChildren = []}
+                                    ]},
+                                    AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstFunctionType, _astTokens = [], _astChildren = [
+                                            AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "U", _TIndex = 5}], _astChildren = []},
+                                            AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 9}], _astChildren = []}
+                                        ]}
+                                    ]},
+                                    AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstMaybeType, _astTokens = [], _astChildren = [
+                                            AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "V", _TIndex = 15}], _astChildren = []}
+                                        ]}
+                                    ]}
+                                ]},
+                                AST_NODE {_astNodeType = AstPairType, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstPairType, _astTokens = [], _astChildren = [
+                                            AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                                AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 22}], _astChildren = []}
+                                            ]},
+                                            AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                                AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "U", _TIndex = 25}], _astChildren = []}
+                                            ]}
+                                        ]}
+                                    ]},
+                                    AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstFunctionType, _astTokens = [], _astChildren = [
+                                            AST_NODE {_astNodeType = AstPairType, _astTokens = [], _astChildren = [
+                                                AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                                    AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 31}], _astChildren = []}
+                                                ]},
+                                                AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                                    AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "U", _TIndex = 34}], _astChildren = []}
+                                                ]}
+                                            ]},
+                                        AST_NODE {_astNodeType = AstPairType, _astTokens = [], _astChildren = [
+                                            AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                                AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 40}], _astChildren = []}
+                                            ]},
+                                            AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                                AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "U", _TIndex = 43}], _astChildren = []}
+                                            ]}
+                                        ]}
+                                    ]}
+                                ]}
+                            ]}
+                        ]}
+                        ],
+                        [])
                 actual `shouldBe` expected
