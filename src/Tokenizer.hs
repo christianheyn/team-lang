@@ -240,6 +240,7 @@ module Tokenizer (
         | T_PipeKeyword
         | T_Pair
         | T_Triple
+        | T_JsonNull
 
         | T_FlagFeature
         | T_FlagProject
@@ -366,6 +367,7 @@ module Tokenizer (
             , ((== "true"), T_BooleanTrue)
             , ((== "false"), T_BooleanFalse)
             , ((== "void"), T_Void)
+            , ((== "null"), T_JsonNull)
             , ((== "->"), T_ArrowLeft)
             , ((== "feature"), T_FlagFeature)
             , ((== "project"), T_FlagProject)

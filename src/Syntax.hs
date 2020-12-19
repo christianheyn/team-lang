@@ -21,6 +21,8 @@ module Syntax (
     , isTypeAlias
     , isPropList
     , isTuple
+    , isJson
+    , isJsonArray
     , hasAstError
     , AST_NODE_TYPE(..)
     , AST_NODE(..)
@@ -60,6 +62,8 @@ module Syntax (
         | AstPropList           -- [a: Number]
         | AstPairType           -- (Number , String)
         | AstTripleType         -- (Number , String, CNumber)
+        | AstJsonKeyValue
+        | AstJson
         | AstPair               -- pair 1 "2"
         | AstTriple             -- triple 1 "2" E:e
         | AstParameter          -- a
@@ -183,6 +187,20 @@ module Syntax (
         then ([createAstNode AstPrimitiv [t] []], ts)
         else checkEnd [t]
 
+    _isJsonPrimitive :: AstFn
+    _isJsonPrimitive []     = checkEnd []
+    _isJsonPrimitive (t:ts) =
+        if (_TType t `elem` [
+              T_String
+            , T_Number
+            , T_BooleanTrue
+            , T_BooleanFalse
+            , T_Void
+            , T_JsonNull
+            ])
+        then ([createAstNode AstPrimitiv [t] []], ts)
+        else checkEnd [t]
+
     _isPrimitive :: AstFn
     _isPrimitive []     = checkEnd []
     _isPrimitive (t:ts) =
@@ -193,6 +211,7 @@ module Syntax (
             , T_BooleanTrue
             , T_BooleanFalse
             , T_Void
+            , T_JsonNull
             ])
         then ([createAstNode AstPrimitiv [t] []], ts)
         else checkEnd [t]
@@ -541,7 +560,8 @@ module Syntax (
               hasError = hasAstError nodes
               astResult = createAstNode AstTypeDefinition [] nodes
 
-    _isJsonKeyValue tokens =
+    _isJsonKeyValueType :: AstFn
+    _isJsonKeyValueType tokens =
         if hasError
         then (nodes, [])
         else ([astResult], restTokens)
@@ -569,9 +589,34 @@ module Syntax (
               astResult = createAstNode AstJsonArrayType [] innerNodes
 
     isJsonType :: AstFn
-    isJsonType = withCurlyGroup AstJsonType [qZeroOrMore [_isJsonKeyValue]]
+    isJsonType = withCurlyGroup AstJsonType [qZeroOrMore [_isJsonKeyValueType]]
 
-    --mTODO: isJson :: AstFn
+    _jsonContent = qOr [
+                      isJsonArray
+                    , isJson
+                    , _isJsonPrimitive
+                    , _isSymbol
+                    , isFunctionCall
+                    , isIfThenElse
+                    ]
+
+    isJsonArray :: AstFn
+    isJsonArray = withSquareGroup AstList [qZeroOrMore [ _jsonContent ] ]
+
+    _isJsonKeyValue :: AstFn
+    _isJsonKeyValue tokens =
+        if hasError
+        then (nodes, [])
+        else ([astResult], restTokens)
+        where (nodes, restTokens) = qExact [
+                                              _isString
+                                            , _jsonContent
+                                            ] tokens
+              hasError = hasAstError nodes
+              astResult = createAstNode AstJsonKeyValue [] nodes
+
+    isJson :: AstFn
+    isJson = withCurlyGroup AstJson [qZeroOrMore [_isJsonKeyValue]]
 
     isClassFunction :: AstFn
     isClassFunction tokens =
@@ -598,6 +643,7 @@ module Syntax (
               astResult = createAstNode AstClass [] nodes
 
     -- TODO isClassInstance :: AstFn
+
 
     isPropKeyValueType :: AstFn -- a: Numbe
     isPropKeyValueType tokens =
@@ -793,11 +839,10 @@ module Syntax (
     isTuple = qOr [_isPair, _isTriple]
     isTupleType = qOr [_isPairType, _isTripleType]
 
-
+    -- TODO isClassInstance :: AstFn
     -- TODO: isNot -- not fn, (not fn)
-    -- TODO: isEither -- either T U
+    -- TODO: isEither -- either T U V
     -- TODO: isLens -- (lens x a: 0 "key" "key2" 0)
-    -- TODO: isJson
     -- TODO: isSwitch
     -- TODO: isDO
 
