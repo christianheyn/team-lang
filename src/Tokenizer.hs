@@ -226,6 +226,7 @@ module Tokenizer (
         | T_PropKeyword
         | T_TypeKeyword
         | T_ClassKeyword
+        | T_ClassInstance
         | T_EnumKeyword
         | T_Do
         | T_If
@@ -265,7 +266,6 @@ module Tokenizer (
     untilTrue (f:fs) x = if ((fst f) x)
                          then True
                          else untilTrue fs x
-
 
     -- step 2
     predicateToType = [
@@ -353,6 +353,7 @@ module Tokenizer (
             , ((== "<<<"), T_CompositionKeyword)
             , ((== ">>>"), T_PipeKeyword)
             , ((== "class"), T_ClassKeyword)
+            , ((== "instance"), T_ClassInstance)
             , ((== "enum"), T_EnumKeyword)
             , ((== "test"), T_Test)
             , ((== "export"), T_Export)

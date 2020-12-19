@@ -6,6 +6,10 @@ import as _B from "./FeatureB.team"
 
 feature {run () (print "RUN")}
 
+instance Functor T {
+    {fmap (f t) (f t)}
+}
+
 {askForTask () (do 
     (print "What Task?")
     (let input = (readLine)

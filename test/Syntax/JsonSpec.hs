@@ -87,7 +87,6 @@ module Syntax.JsonSpec where
                             ]}
                         ],
                         [])
-
                 actual `shouldBe` expected
 
             it "{ \"key\" null }" $ do
@@ -101,5 +100,4 @@ module Syntax.JsonSpec where
                             ]}
                         ],
                         [])
-
                 actual `shouldBe` expected

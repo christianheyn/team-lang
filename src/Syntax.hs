@@ -13,6 +13,7 @@ module Syntax (
     , isPropListType
     , isJsonType
     , isClass
+    , isClassInstance
     , isTypeDefinition
     , isIfThenElse
     , isImport
@@ -55,6 +56,7 @@ module Syntax (
         | AstJsonArrayType      -- [T]
         | AstClassFunction      -- fmap <U> {T -> U} -> [T] -> [U]
         | AstClass              -- class Functor <T> { fmap <U> {T -> U} -> [T] -> [U] }
+        | AstClassInstance      -- instance Functor F { {fmap (f x) (f x)} }
         | AstProp               -- a:
         | AstPropKeyValueType   -- a: Number
         | AstPropListType       -- [a: Number]
@@ -376,7 +378,8 @@ module Syntax (
     isParamterList = withRoundGroup AstParameterList [qZeroOrMore [ _isParameter, isParamterList ]]
 
     isFunctionCall :: AstFn
-    isFunctionCall = withRoundGroup AstFunctionCall [_isSymbol, qZeroOrMore [ _isSymbol, _isPrimitive, isFunctionCall, isLambda, isPropList ]]
+    isFunctionCall = withRoundGroup AstFunctionCall [_isSymbol, qZeroOrMore inner]
+        where inner = [ _isSymbol, _isPrimitive, isFunctionCall, isLambda, isPropList, _isProp ]
 
     isList :: AstFn
     isList = withSquareGroup AstList [qZeroOrMore [isList, _isSymbol, _isPrimitive, isPropList]]
@@ -642,8 +645,20 @@ module Syntax (
               hasError = hasAstError nodes
               astResult = createAstNode AstClass [] nodes
 
-    -- TODO isClassInstance :: AstFn
-
+    isClassInstance :: AstFn
+    isClassInstance tokens =
+        if hasError
+        then (nodes, [])
+        else ([astResult], restTokens)
+        where (nodes, restTokens) = qExact ([
+                                              _hasTokenType T_ClassInstance
+                                            , _isType
+                                            , isTypeDefinitionWithoutTemplates
+                                            , _isOpenCurly
+                                            , qOneOrMore [isFunction]
+                                            , _isClosingCurly]) tokens
+              hasError = hasAstError nodes
+              astResult = createAstNode AstClassInstance [] nodes
 
     isPropKeyValueType :: AstFn -- a: Numbe
     isPropKeyValueType tokens =
@@ -863,4 +878,3 @@ module Syntax (
         -- TODO: isAlias :: AstFn
 
     -- TODO: isTopLevel
-
