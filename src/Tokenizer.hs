@@ -191,6 +191,7 @@ module Tokenizer (
         | T_EnumMember
         | T_Type
         | T_MaybeType
+        | T_EitherType
         | T_Number
         | T_ComplexNumber
         | T_String
@@ -361,6 +362,7 @@ module Tokenizer (
             , ((== "as"), T_As)
             , ((== "from"), T_From)
             , ((== "maybe"), T_MaybeType)
+            , ((== "either"), T_EitherType)
             , ((== "catch"), T_Catch)
             , ((== "do"), T_Do)
             , ((== "parallel"), T_Parallel)

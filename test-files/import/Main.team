@@ -24,3 +24,6 @@ project {team-lang @Strings -> Void (@args) (
             then (run)
             else (askForTask)
 )}
+
+either Number String Boolean
+<T = Functor>

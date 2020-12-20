@@ -49,6 +49,7 @@ module Syntax (
         | AstRestType           -- @Test
         | AstTemplateType       -- <T>
         | AstMaybeType          -- maybe T
+        | AstEitherType         -- either T U V {W -> U}
         | AstFunctionType       -- {T -> U}
         | AstListType           -- [T]
         | AstJsonType           -- { "key" Value "key2" { "key3" String } "key4" [Number] }
@@ -254,7 +255,7 @@ module Syntax (
         if hasError
         then (nodes, [])
         else ([astResult], restTokens)
-        where (nodes, restTokens) = qExact [_isRestSpread, qOr [_isType, isFunctionTypeDef, isListType, isPropListType, isMaybeType]] tokens
+        where (nodes, restTokens) = qExact [_isRestSpread, qOr [_isType, isFunctionTypeDef, isListType, isPropListType, isMaybeType, isEitherType]] tokens
               hasError = hasAstError nodes
               astResult = createAstNode AstRestType [] nodes
 
@@ -488,7 +489,17 @@ module Syntax (
         where (nodes, restTokens) = qExact [_hasTokenType T_MaybeType, allTypes] tokens
               hasError = hasAstError nodes
               astResult = createAstNode AstMaybeType [] nodes
-              allTypes = qOr [_isType, isFunctionTypeDef, isListType, isPropListType, isMaybeType]
+              allTypes = qOr [_isType, isFunctionTypeDef, isListType, isPropListType, isMaybeType, isEitherType]
+
+    isEitherType :: AstFn
+    isEitherType tokens =
+        if hasError
+        then (nodes, [])
+        else ([astResult], restTokens)
+        where (nodes, restTokens) = qExact [_hasTokenType T_EitherType, allTypes] tokens
+              hasError = hasAstError nodes
+              astResult = createAstNode AstEitherType [] nodes
+              allTypes = qOneOrMore [_isType, isFunctionTypeDef, isListType, isPropListType, isMaybeType, isEitherType]
 
     isListType :: AstFn
     isListType tokens =
@@ -535,6 +546,7 @@ module Syntax (
                             , isListType
                             , isPropListType
                             , isMaybeType
+                            , isEitherType
                             , _isPairType
                             , _isTripleType
                             , isJsonType]
@@ -854,13 +866,11 @@ module Syntax (
     isTuple = qOr [_isPair, _isTriple]
     isTupleType = qOr [_isPairType, _isTripleType]
 
-    -- TODO isClassInstance :: AstFn
-    -- TODO: isNot -- not fn, (not fn)
-    -- TODO: isEither -- either T U V
-    -- TODO: isLens -- (lens x a: 0 "key" "key2" 0)
-    -- TODO: isSwitch
     -- TODO: isDO
+    -- TODO: isLens -- (lens x a: 0 "key" "key2" 0)
 
+    -- TODO: isNot -- not fn, (not fn)
+    -- TODO: isSwitch
     -- TODO: isFeature :: AstFn
     -- TODO: isProject :: AstFn
     -- TODO: isHotfix :: AstFn

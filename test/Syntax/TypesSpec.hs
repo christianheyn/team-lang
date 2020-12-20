@@ -575,3 +575,36 @@ module Syntax.TypesSpec where
                         ],
                         [])
                 actual `shouldBe` expected
+
+            it "maybe T -> either String Number Boolean" $ do
+                let actual = isTypeDefinition $ generateTokens "maybe T -> either String Number Boolean"
+                    expected =  ([
+                            AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstMaybeType, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "T", _TIndex = 2}], _astChildren = []}
+                                ]},
+                                AST_NODE {_astNodeType = AstEitherType, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "String", _TIndex = 8}], _astChildren = []},
+                                    AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "Number", _TIndex = 10}], _astChildren = []},
+                                    AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "Boolean", _TIndex = 12}], _astChildren = []}
+                                ]}
+                            ]}
+                        ],
+                        [])
+                actual `shouldBe` expected
+
+            it "maybe either String Number Boolean" $ do
+                let actual = isTypeDefinition $ generateTokens "maybe either String Number Boolean"
+                    expected =  ([
+                            AST_NODE {_astNodeType = AstTypeDefinition, _astTokens = [], _astChildren = [
+                                AST_NODE {_astNodeType = AstMaybeType, _astTokens = [], _astChildren = [
+                                    AST_NODE {_astNodeType = AstEitherType, _astTokens = [], _astChildren = [
+                                        AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "String", _TIndex = 4}], _astChildren = []},
+                                        AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "Number", _TIndex = 6}], _astChildren = []},
+                                        AST_NODE {_astNodeType = AstTypeSymbol, _astTokens = [Token {_TType = T_Type, _TValue = "Boolean", _TIndex = 8}], _astChildren = []}
+                                    ]}
+                                ]}
+                            ]}
+                        ],
+                        [])
+                actual `shouldBe` expected

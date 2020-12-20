@@ -161,3 +161,11 @@ module Tokenizer.TokenizeSpec where
                 , (T_Number, "e", 15)
                 , (T_ClosingRoundBracket, ")", 16)
                 ]
+
+            testTokenize "T|U|V"  [
+                  (T_Type, "T", 0)
+                , (T_Symbol, "|", 1)
+                , (T_Type, "U", 2)
+                , (T_Symbol, "|", 3)
+                , (T_Type, "V", 4)
+                ]
