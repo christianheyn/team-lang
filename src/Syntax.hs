@@ -16,6 +16,7 @@ module Syntax (
     , isClassInstance
     , isTypeDefinition
     , isIfThenElse
+    , isSwitch
     , isImport
     , isLet
     , isVar
@@ -84,6 +85,9 @@ module Syntax (
         | AstComp               -- comp f = f3 f2 f1
         | AstPipe               -- pipe f = f1 f2 f3
         | AstLet                -- (let (type T [Number]) (var Number a 3) (print a))
+        | AstSwitchValue
+        | AstSwitch
+        | AstOtherwiseValue
         | AstOpen               -- ({[
         | AstClose              -- ]})
         | AstImport
@@ -773,7 +777,7 @@ module Syntax (
                             , qOptional isTypeDefinition
                             , _hasTokenType T_EqualSign
                             , qOr [
-                                    _isSymbol
+                                  _isSymbol
                                 , _isPrimitive
                                 , isLambda
                                 , isEnumValue
@@ -781,7 +785,7 @@ module Syntax (
                                 , isFunctionCall
                                 , isIfThenElse
                                 , isPropList
-                                -- TODO: , isJson
+                                , isJson
                                 ]
                             ]
 
@@ -866,11 +870,71 @@ module Syntax (
     isTuple = qOr [_isPair, _isTriple]
     isTupleType = qOr [_isPairType, _isTripleType]
 
+    isOtherwise :: AstFn
+    isOtherwise = withOptionalRoundGroup AstOtherwiseValue [
+                      _hasTokenType T_Otherwise
+                    , qOr [
+                        _isSymbol
+                        , _isPrimitive
+                        , isLambda
+                        , isEnumValue
+                        , isList
+                        , isFunctionCall
+                        , isFunction
+                        , isIfThenElse
+                        , isPropList
+                        , isJson
+                        , isSwitch
+                        ]
+                    ]
+
+    isSwitch :: AstFn
+    isSwitch = withOptionalRoundGroup AstSwitch [
+                                        _hasTokenType T_Switch
+                                        , qOr [
+                                              _isSymbol
+                                            , _isPrimitive
+                                            , isLambda
+                                            , isEnumValue
+                                            , isList
+                                            , isFunctionCall
+                                            , isIfThenElse
+                                            , isPropList
+                                            , isJson
+                                            ]
+                                        , qOneOrMore [switchValue]
+                                        , isOtherwise
+                                    ]
+            where switchValue = withOptionalRoundGroup AstSwitchValue [
+                                              qOr [
+                                                  _isSymbol
+                                                , _isPrimitive
+                                                , isEnumValue
+                                                , isList
+                                                , isPropList
+                                                , isJson
+                                                ]
+                                            , _hasTokenType T_FatArrowLeft
+                                            , qOr [
+                                                  _isSymbol
+                                                , _isPrimitive
+                                                , isLambda
+                                                , isEnumValue
+                                                , isList
+                                                , isFunctionCall
+                                                , isFunction
+                                                , isIfThenElse
+                                                , isPropList
+                                                , isJson
+                                                , isSwitch
+                                                ]
+                                            ]
+
     -- TODO: isDO
     -- TODO: isLens -- (lens x a: 0 "key" "key2" 0)
+    -- TODO: isSwitchType
 
     -- TODO: isNot -- not fn, (not fn)
-    -- TODO: isSwitch
     -- TODO: isFeature :: AstFn
     -- TODO: isProject :: AstFn
     -- TODO: isHotfix :: AstFn
@@ -888,3 +952,4 @@ module Syntax (
         -- TODO: isAlias :: AstFn
 
     -- TODO: isTopLevel
+

@@ -169,16 +169,24 @@ type Lens = <T> <U> lens { T -> U }
     )
 )
 
-(var Number a (if (< b 3)
-               then 4
-               else 2))
+(var Number a if (< b 3)
+              then 4
+              else 2)
 
 (switch a
-    (4 "four")
-    (5 "five")
-    (6 "six")
-    otherwise "wrong number")
+    (4 => "four")
+    5 => "five"
+    6 => "six"
+    otherwise "wrong number"
+)
 
 test {
 
 }
+
+(switch type x
+    Number => (toString x)
+    String => x
+    Boolean => if (< x 1) then "0" else "1"
+    otherwise "3"
+)

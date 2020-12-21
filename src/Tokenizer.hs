@@ -238,6 +238,9 @@ module Tokenizer (
         | T_Parallel
         | T_Concurrent
         | T_ArrowLeft
+        | T_Switch
+        | T_FatArrowLeft
+        | T_Otherwise
         | T_CompositionKeyword
         | T_PipeKeyword
         | T_Pair
@@ -372,6 +375,9 @@ module Tokenizer (
             , ((== "void"), T_Void)
             , ((== "null"), T_JsonNull)
             , ((== "->"), T_ArrowLeft)
+            , ((== "switch"), T_Switch)
+            , ((== "=>"), T_FatArrowLeft)
+            , ((== "otherwise"), T_Otherwise)
             , ((== "feature"), T_FlagFeature)
             , ((== "project"), T_FlagProject)
             , ((== "hotfix"), T_FlagHotfix)
