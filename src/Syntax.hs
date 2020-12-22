@@ -25,6 +25,7 @@ module Syntax (
     , isTuple
     , isJson
     , isJsonArray
+    , isTopLevel
     , hasAstError
     , AST_NODE_TYPE(..)
     , AST_NODE(..)
@@ -131,6 +132,7 @@ module Syntax (
     qZeroOrMore :: [AstFn] -> AstFn
     qZeroOrMore checks = qZeroOrMore' checks
 
+    -- TODO: Erweitern um Fehler mitzunehmen
     qOneOrMore' :: [AstFn] -> AstFn
     qOneOrMore' _      []     = ([], [])
     qOneOrMore' checks tokens =
@@ -165,6 +167,7 @@ module Syntax (
     qExact :: [AstFn] -> AstFn
     qExact checks = qExact' checks
 
+    -- TODO: Erweitern um Fehler mitzunehmen
     qOr' :: [AstFn] -> [Token] -> ([AST_NODE], [Token])
     qOr' []     ts     = ([createAstNode AstError [] []], ts)
     qOr' _      []     = ([], [])
@@ -241,7 +244,8 @@ module Syntax (
 
     _isImportedType' :: AstFn
     _isImportedType' []            = checkEnd []
-    _isImportedType' [_, _]        = checkEnd []
+    _isImportedType' [t]           = checkEnd [t]
+    _isImportedType' [t, t']       = checkEnd [t, t']
     _isImportedType' (t:t':t'':ts) =
         if (_TType t == T_Symbol && _TType t' == T_ReferenceDot && _TType t'' == T_Type)
         then ([createAstNode AstImportedTypeSymbol (t:t':t'':[]) []], ts)
@@ -428,6 +432,8 @@ module Syntax (
                           , _isSymbol
                           , isFunctionCall
                           , isLambda
+                          , isSwitch
+                          , isIfThenElse
                           ]
 
     isLambda :: AstFn
@@ -734,8 +740,6 @@ module Syntax (
                       , isPropList
                       , isIfThenElse]
 
-    -- TODO: isSwitch :: AstFn -- (switch a (2 "two") (5 "five") otherwise "wrong number")
-
     _isImport' :: AstFn -- import (a b c) from "./FeatureA.team"
     _isImport' tokens =
         if hasError
@@ -786,6 +790,7 @@ module Syntax (
                                 , isIfThenElse
                                 , isPropList
                                 , isJson
+                                , isTuple
                                 ]
                             ]
 
@@ -825,7 +830,8 @@ module Syntax (
                                         , isIfThenElse
                                         , isList
                                         , isPropList
-                                        -- TODO: , isJson
+                                        , isJson
+                                        , isSwitch
                                         ]
                                     ]
 
@@ -951,5 +957,29 @@ module Syntax (
     -- TODO: isGlobal :: AstFn
         -- TODO: isAlias :: AstFn
 
-    -- TODO: isTopLevel
-
+    isTopLevel :: AstFn
+    isTopLevel = qZeroOrMore [
+        qOr [
+              isFunction
+            , isLambda
+            , isList
+            , isEnum
+            , isEnumValue
+            , isTemplateType
+            , isPropListType
+            , isJsonType
+            , isClass
+            , isClassInstance
+            , isTypeDefinition
+            , isIfThenElse
+            , isSwitch
+            , isImport
+            , isLet
+            , isVar
+            , isTypeAlias
+            , isPropList
+            , isTuple
+            , isJson
+            , isJsonArray
+            ]
+        ]
