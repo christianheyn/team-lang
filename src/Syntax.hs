@@ -432,6 +432,8 @@ module Syntax (
                           , _isSymbol
                           , isFunctionCall
                           , isLambda
+                          , isSwitch
+                          , isIfThenElse
                           ]
 
     isLambda :: AstFn
@@ -738,8 +740,6 @@ module Syntax (
                       , isPropList
                       , isIfThenElse]
 
-    -- TODO: isSwitch :: AstFn -- (switch a (2 "two") (5 "five") otherwise "wrong number")
-
     _isImport' :: AstFn -- import (a b c) from "./FeatureA.team"
     _isImport' tokens =
         if hasError
@@ -790,6 +790,7 @@ module Syntax (
                                 , isIfThenElse
                                 , isPropList
                                 , isJson
+                                , isTuple
                                 ]
                             ]
 
@@ -829,7 +830,8 @@ module Syntax (
                                         , isIfThenElse
                                         , isList
                                         , isPropList
-                                        -- TODO: , isJson
+                                        , isJson
+                                        , isSwitch
                                         ]
                                     ]
 
@@ -981,4 +983,3 @@ module Syntax (
             , isJsonArray
             ]
         ]
-

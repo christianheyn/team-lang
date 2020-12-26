@@ -24,12 +24,13 @@ module Main where
     fileAst = do
         (filepath:_) <- getArgs
         cwd <- getCurrentDirectory
-        x <- readFile $ cwd ++ "/" ++ filepath
-        let ast = isTopLevel $ generateTokens (L.pack x)
+        x <- L.readFile $ cwd ++ "/" ++ filepath
+        let tokens = generateTokens x
+        print (last tokens)
+        let ast = isTopLevel tokens
             valid = if length (snd ast) /= 0
                     then red ++ "--- Error ---" ++ noColor
                     else green ++ "--- Valid ---" ++ noColor
-        print ast
         putStrLn valid
 
     main :: IO ()
