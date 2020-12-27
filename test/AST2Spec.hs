@@ -51,3 +51,20 @@ module AST2Spec where
                     let actual = __keyword "import" "import(🧐"
                         expected = ("import", "(🧐")
                     actual `shouldBe` expected
+
+            describe "__symbol" $ do
+                it "xxx xxx" $ do
+                    let actual = __symbol "xxx xxx"
+                        expected = ("xxx", " xxx")
+                    actual `shouldBe` expected
+
+                it "~~µ??// xxx" $ do
+                    let actual = __symbol "~~µ??// xxx"
+                        expected = ("~~µ??//", " xxx")
+                    actual `shouldBe` expected
+
+                it "?🐵 xxx" $ do
+                    let actual = __symbol "?🐵 xxx"
+                        expected = ("?🐵", " xxx")
+                    actual `shouldBe` expected
+

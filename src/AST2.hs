@@ -7,6 +7,7 @@ module AST2 (
     , AST_NODE(..)
     , __string
     , __keyword
+    , __symbol
     ) where
 
     import qualified Data.ByteString.Lazy.Char8 as L
@@ -114,3 +115,10 @@ module AST2 (
                         then (fromJust rest)
                         else ""
 
+    __symbol :: L.ByteString -> (L.ByteString, L.ByteString)
+    __symbol ""    = ("", "")
+    __symbol chars = if L.length cs == 0
+                     then ("", chars)
+                     else (cs, fromJust $ L.stripPrefix cs chars)
+        where cs = L.takeWhile (`L.notElem` notCs) chars
+              notCs = "()[]{} \n,;:#\"" <> (L.pack ['A'..'Z'])
