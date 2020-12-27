@@ -30,3 +30,24 @@ module AST2Spec where
                     let actual = __string "\"\"xxx"
                         expected = ("", "xxx")
                     actual `shouldBe` expected
+
+                it "\"🧐\" xxx" $ do
+                    let actual = __string "\"🧐\" xxx"
+                        expected = ("🧐", " xxx")
+                    actual `shouldBe` expected
+
+            describe "__keyword" $ do
+                it "import xxx" $ do
+                    let actual = __keyword "import" "import xxx"
+                        expected = ("import", " xxx")
+                    actual `shouldBe` expected
+
+                it "import(xxx" $ do
+                    let actual = __keyword "import" "import(xxx"
+                        expected = ("import", "(xxx")
+                    actual `shouldBe` expected
+
+                it "import(🧐" $ do
+                    let actual = __keyword "import" "import(🧐"
+                        expected = ("import", "(🧐")
+                    actual `shouldBe` expected

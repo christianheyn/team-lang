@@ -6,6 +6,7 @@ module AST2 (
       AST_NODE_TYPE(..)
     , AST_NODE(..)
     , __string
+    , __keyword
     ) where
 
     import qualified Data.ByteString.Lazy.Char8 as L
@@ -73,7 +74,7 @@ module AST2 (
         , _astChildren :: [AST_NODE]
         } deriving (Show, Eq)
 
-    type AstFn = L.ByteString -> ([AST_NODE], L.ByteString)
+    type AstFn = L.ByteString -> ([Maybe AST_NODE], L.ByteString)
 
 
     -- QUANTIFIER =============================================================
@@ -99,3 +100,17 @@ module AST2 (
                                 then (( a <> "\"" <> a'), b')
                                 else (a, L.tail b)
               (a', b')        = __string b
+
+    __keyword :: L.ByteString -> L.ByteString -> (L.ByteString, L.ByteString)
+    __keyword kw ""    = ("", "")
+    __keyword kw chars = if (kw `L.isPrefixOf` chars) && (fstRest `L.elem` " (){}[]\n")
+                         then (kw, justRest)
+                         else ("", chars)
+        where rest = L.stripPrefix kw chars
+              fstRest = if (isJust rest && L.length (fromJust rest) /= 0)
+                        then L.head (fromJust rest)
+                        else ' '
+              justRest = if (isJust rest)
+                        then (fromJust rest)
+                        else ""
+

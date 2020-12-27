@@ -18,7 +18,7 @@ instance Functor T {
 
 project {team-lang @Strings -> Void (@args) (
     let var argLen = (length args)
-        var arg1 = (head args)
+        var arg1   = (head args)
 
         if (?and (not ?equals argLen 0) (?equals arg1 "execute") )
             then (run)
@@ -26,4 +26,8 @@ project {team-lang @Strings -> Void (@args) (
 )}
 
 either Number String Boolean
-<T = Functor>
+
+
+class LIST = Functor Show Eq
+
+class Functor <T> = {fmap <U> {T -> U} -> T -> U}
