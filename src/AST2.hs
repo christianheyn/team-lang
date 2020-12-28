@@ -32,9 +32,12 @@ module AST2 (
     fromAST ( AST_ERROR x) = x
 
     data AST_NODE_TYPE =
-          AST_NaturalNumber -- 1 2 3 4 5 ...
+          AST_Number -- 1 2 3 4 5 ...
+        | AST_Minus         -- -
+        | AST_Plus          -- +
         | AST_String        -- "text"
         | AST_ParseError
+        | AST_Ignore
         deriving (Show, Eq)
 
     data AST_NODE = AST_NODE {
@@ -44,6 +47,8 @@ module AST2 (
         } deriving (Show, Eq)
 
     type AstFn = L.ByteString -> (AST [AST_NODE], L.ByteString)
+
+    -- combinedAs :: AST_NODE_TYPE -> AstFn -> AstFn
 
     singleAstNode t val children = AST_VALUE [
         AST_NODE {
@@ -64,14 +69,17 @@ module AST2 (
     -- QUANTIFIER =============================================================
 
     -- qOneOrMore :: [AstFn] -> AstFn
-    -- qOneOrMore :: [AstFn] -> AstFn
-    -- qOptional  :: AstFn -> AstFn
-    -- qExact     :: [AstFn] -> AstFn
-    -- qOr        :: [AstFn] -> AstFn
+    qOptional :: AstFn -> AstFn
+    qOptional _ ""        = (AST_VALUE [], "")
+    qOptional check chars =
+        if isAstError ast
+        then (AST_VALUE [], chars)
+        else (ast, rest)
+        where (ast, rest) = check chars
 
     qExact :: [AstFn] -> AstFn
     qExact []     chars = (AST_VALUE [], chars)
-    qExact (x:[]) ""    = (AST_ERROR [], "")
+    qExact (x:_) ""    = (AST_ERROR [], "")
     qExact (c:cs) chars =
         if (isAstError ast)
         then (ast, rest)
@@ -80,6 +88,15 @@ module AST2 (
              else (AST_VALUE ( fromAST ast ++ fromAST nextAst), nextRest)
         where (ast, rest) = c chars
               (nextAst, nextRest) = qExact cs rest
+
+    qOr :: [AstFn] -> AstFn
+    qOr []     chars = (AST_ERROR [], chars)
+    qOr (x:_) ""    = (AST_ERROR [], "")
+    qOr (c:cs) chars =
+        if (isAstError ast)
+        then qOr cs rest
+        else (ast, rest)
+        where (ast, rest) = c chars
 
     -- END QUANTIFIER =============================================================
 
@@ -142,15 +159,31 @@ module AST2 (
         then (AST_VALUE [], L.tail chars)
         else (AST_ERROR [], chars)
 
+    ___signAs :: AST_NODE_TYPE -> L.ByteString -> AstFn
+    ___signAs t s chars =
+        if L.head chars == L.head s
+        then (singleAstNode t (Just s) (AST_VALUE []), L.tail chars)
+        else (AST_ERROR [], chars)
+
+    ___plus :: AstFn
+    ___plus = ___signAs AST_Plus "+"
+
+    ___minus :: AstFn
+    ___minus = ___signAs AST_Minus "-"
+
     ___naturalNumber :: AstFn
     ___naturalNumber ""    = (endOfFileError, "")
     ___naturalNumber chars =
         if L.length ns == 0
         then (AST_ERROR [], chars)
-        else (singleAstNode AST_NaturalNumber (Just ns) (AST_VALUE []), rest)
+        else (singleAstNode AST_Number (Just ns) (AST_VALUE []), rest)
         where (ns, rest) = L.break (`L.notElem` "0123456789") chars
 
-    ___decimalNumber = qExact [___naturalNumber, ___dot, ___naturalNumber]
+    ___decimalNumber = qExact [
+          qOptional $ qOr [___minus, ___plus]
+        , ___naturalNumber
+        , ___dot
+        , ___naturalNumber]
 
     -- END NUMBERS =============================================================
 

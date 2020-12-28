@@ -55,9 +55,20 @@ module AST2Spec where
                 it "123.222 xxx" $ do
                     let actual = ___decimalNumber "123.222 xxx"
                         expected = (
-                            AST_VALUE [
-                                AST_NODE {_astNodeType = AST_NaturalNumber, _astValue = Just "123", _astChildren = AST_VALUE []},AST_NODE {_astNodeType = AST_NaturalNumber, _astValue = Just "222", _astChildren = AST_VALUE []}]," xxx")
+                                AST_VALUE [
+                                    AST_NODE {_astNodeType = AST_Number, _astValue = Just "123", _astChildren = AST_VALUE []},
+                                    AST_NODE {_astNodeType = AST_Number, _astValue = Just "222", _astChildren = AST_VALUE []}
+                                ],
+                                " xxx"
+                            )
+                    actual `shouldBe` expected
 
+                it "-123.222 xxx" $ do
+                    let actual = ___decimalNumber "-123.222 xxx"
+                        expected = (
+                                AST_VALUE [],
+                                " xxx"
+                            )
                     actual `shouldBe` expected
 
             describe "___naturalNumber" $ do
@@ -66,7 +77,7 @@ module AST2Spec where
                         expected = (
                                 AST_VALUE [
                                     AST_NODE {
-                                        _astNodeType = AST_NaturalNumber,
+                                        _astNodeType = AST_Number,
                                         _astValue = Just "123",
                                         _astChildren = AST_VALUE []
                                     }
@@ -80,7 +91,7 @@ module AST2Spec where
                         expected = (
                                 AST_VALUE [
                                     AST_NODE {
-                                        _astNodeType = AST_NaturalNumber,
+                                        _astNodeType = AST_Number,
                                         _astValue = Just "1",
                                         _astChildren = AST_VALUE []
                                     }
