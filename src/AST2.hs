@@ -9,7 +9,7 @@ module AST2 (
     , __string
     , __keyword
     , ___naturalNumber
-    , ___decimalNumber
+    , ___number
     , __symbol
     ) where
 
@@ -35,8 +35,10 @@ module AST2 (
           AST_Number -- 1 2 3 4 5 ...
         | AST_Minus         -- -
         | AST_Plus          -- +
+        | AST_Divide        -- /
+        | AST_Dot           -- .
         | AST_String        -- "text"
-        | AST_ParseError
+        | AST_Syntax_Error
         | AST_Ignore
         deriving (Show, Eq)
 
@@ -58,9 +60,18 @@ module AST2 (
         }
         ]
 
+    unexpected chars = (ast, L.tail chars)
+        where ast = AST_ERROR [
+                        AST_NODE {
+                              _astNodeType = AST_Syntax_Error
+                            , _astValue    = Just (L.take 1 chars)
+                            , _astChildren = AST_ERROR []
+                            }
+                        ]
+
     endOfFileError = AST_ERROR [
         AST_NODE {
-            _astNodeType   = AST_ParseError
+            _astNodeType   = AST_Syntax_Error
             , _astValue    = Just "End of file"
             , _astChildren = AST_ERROR []
         }
@@ -152,18 +163,14 @@ module AST2 (
                         else ""
 
     -- NUMBERS =============================================================
-    ___dot :: AstFn
-    ___dot ""    = (endOfFileError, "")
-    ___dot chars =
-        if L.head chars == '.'
-        then (AST_VALUE [], L.tail chars)
-        else (AST_ERROR [], chars)
-
     ___signAs :: AST_NODE_TYPE -> L.ByteString -> AstFn
     ___signAs t s chars =
         if L.head chars == L.head s
         then (singleAstNode t (Just s) (AST_VALUE []), L.tail chars)
-        else (AST_ERROR [], chars)
+        else unexpected chars
+
+    ___dot :: AstFn
+    ___dot = ___signAs AST_Dot "."
 
     ___plus :: AstFn
     ___plus = ___signAs AST_Plus "+"
@@ -171,19 +178,25 @@ module AST2 (
     ___minus :: AstFn
     ___minus = ___signAs AST_Minus "-"
 
+    ___divide :: AstFn
+    ___divide = ___signAs AST_Divide "/"
+
     ___naturalNumber :: AstFn
     ___naturalNumber ""    = (endOfFileError, "")
     ___naturalNumber chars =
         if L.length ns == 0
-        then (AST_ERROR [], chars)
+        then unexpected chars
         else (singleAstNode AST_Number (Just ns) (AST_VALUE []), rest)
         where (ns, rest) = L.break (`L.notElem` "0123456789") chars
 
-    ___decimalNumber = qExact [
-          qOptional $ qOr [___minus, ___plus]
+    ___number = qExact [
+          qOptional ___minus
         , ___naturalNumber
-        , ___dot
-        , ___naturalNumber]
+        , qOptional $ qOr [
+              qExact [___dot, ___naturalNumber]
+            , qExact [___divide, ___naturalNumber]
+            ]
+        ]
 
     -- END NUMBERS =============================================================
 
