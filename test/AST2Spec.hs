@@ -68,3 +68,46 @@ module AST2Spec where
                         expected = ("?🐵", " xxx")
                     actual `shouldBe` expected
 
+                it "aBC xxx" $ do
+                    let actual = __symbol "aBC xxx"
+                        expected = ("aBC", " xxx")
+                    actual `shouldBe` expected
+
+                it "1xx xxx" $ do
+                    let actual = __symbol "1xx xxx"
+                        expected = ("", "1xx xxx")
+                    actual `shouldBe` expected
+
+                it "-12 xxx" $ do
+                    let actual = __symbol "-12 xxx"
+                        expected = ("", "-12 xxx")
+                    actual `shouldBe` expected
+
+            describe "___naturalNumber" $ do
+                it "123 xxx" $ do
+                    let actual = ___naturalNumber "123 xxx"
+                        expected = (
+                                AST_VALUE [
+                                    AST_NODE {
+                                        _astNodeType = AST_NaturalNumber,
+                                        _astValue = Just "123",
+                                        _astChildren = AST_END
+                                    }
+                                ],
+                                " xxx"
+                            )
+                    actual `shouldBe` expected
+
+                it "1xxx" $ do
+                    let actual = ___naturalNumber "1xxx"
+                        expected = (
+                                AST_VALUE [
+                                    AST_NODE {
+                                        _astNodeType = AST_NaturalNumber,
+                                        _astValue = Just "1",
+                                        _astChildren = AST_END
+                                    }
+                                ],
+                                "xxx"
+                            )
+                    actual `shouldBe` expected

@@ -3,10 +3,12 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module AST2 (
-      AST_NODE_TYPE(..)
+      AST(..)
+    , AST_NODE_TYPE(..)
     , AST_NODE(..)
     , __string
     , __keyword
+    , ___naturalNumber
     , __symbol
     ) where
 
@@ -14,69 +16,40 @@ module AST2 (
     import Data.List (find, null, or, break)
     import Data.Maybe (isJust, fromJust)
 
+    data AST a =
+          AST_VALUE a
+        | AST_ERROR a
+        | AST_END
+         deriving (Show, Eq)
+
     data AST_NODE_TYPE =
-          AstPrimitiv           -- 3 , "string", true
-        | AstSymbol             -- a
-        | AstTypeAlias          -- (type J { "a" Number })
-        | AstTypeDefinition     -- <T> <U> T -> {T -> [U]}
-        | AstTypeSymbol         -- T
-        | AstImportedTypeSymbol -- tdd.Test
-        | AstRestType           -- @Test
-        | AstTemplateType       -- <T>
-        | AstMaybeType          -- maybe T
-        | AstEitherType         -- either T U V {W -> U}
-        | AstFunctionType       -- {T -> U}
-        | AstListType           -- [T]
-        | AstJsonType           -- { "key" Value "key2" { "key3" String } "key4" [Number] }
-        | AstJsonKeyValueType   -- "key" Value
-        | AstJsonArrayType      -- [T]
-        | AstClassFunction      -- fmap <U> {T -> U} -> [T] -> [U]
-        | AstClass              -- class Functor <T> { fmap <U> {T -> U} -> [T] -> [U] }
-        | AstClassInstance      -- instance Functor F { {fmap (f x) (f x)} }
-        | AstProp               -- a:
-        | AstPropKeyValueType   -- a: Number
-        | AstPropListType       -- [a: Number]
-        | AstPropKeyValue       -- [a: Number]
-        | AstPropList           -- [a: Number]
-        | AstPairType           -- (Number , String)
-        | AstTripleType         -- (Number , String, CNumber)
-        | AstJsonKeyValue
-        | AstJson
-        | AstPair               -- pair 1 "2"
-        | AstTriple             -- triple 1 "2" E:e
-        | AstParameter          -- a
-        | AstParameterList      -- (a b)
-        | AstEnum               -- (enum Hallo :hi :hello :huhu)
-        | AstEnumMember         -- :hi
-        | AstEnumValue          -- Hallo:hi, imported.Hallo:hi
-        | AstLambda             -- {(a) (+ a 1)}
-        | AstFunction           -- {plus1 (a) (+ a 1)}
-        | AstFunctionBody
-        | AstFunctionCall       -- (plus1 3)
-        | AstList               -- [1 2 3 (+ 2 5)]
-        | AstIfCondition        -- (if a then b else c)
-        | AstVar                -- var a CNumber = 6+4i)
-        | AstComp               -- comp f = f3 f2 f1
-        | AstPipe               -- pipe f = f1 f2 f3
-        | AstLet                -- (let (type T [Number]) (var Number a 3) (print a))
-        | AstSwitchValue
-        | AstSwitch
-        | AstOtherwiseValue
-        | AstOpen               -- ({[
-        | AstClose              -- ]})
-        | AstImport
-        | AstImportAs
-        | AstError
+          AST_NaturalNumber -- 1 2 3 4 5 ...
+        | AST_ParseError
         deriving (Show, Eq)
 
     data AST_NODE = AST_NODE {
           _astNodeType :: AST_NODE_TYPE
-        , _astTokens   :: [L.ByteString]
-        , _astChildren :: [AST_NODE]
+        , _astValue    :: Maybe L.ByteString
+        , _astChildren :: AST [AST_NODE]
         } deriving (Show, Eq)
 
-    type AstFn = L.ByteString -> ([Maybe AST_NODE], L.ByteString)
+    type AstFn = L.ByteString -> (AST [AST_NODE], L.ByteString)
 
+    singleAstNode t val children = AST_VALUE [
+        AST_NODE {
+          _astNodeType = t
+        , _astValue    = val
+        , _astChildren = children
+        }
+        ]
+
+    endOfFileError = AST_ERROR [
+        AST_NODE {
+            _astNodeType   = AST_ParseError
+            , _astValue    = Just "End of file"
+            , _astChildren = AST_ERROR []
+        }
+        ]
 
     -- QUANTIFIER =============================================================
 
@@ -104,7 +77,7 @@ module AST2 (
 
     __keyword :: L.ByteString -> L.ByteString -> (L.ByteString, L.ByteString)
     __keyword kw ""    = ("", "")
-    __keyword kw chars = if (kw `L.isPrefixOf` chars) && (fstRest `L.elem` " (){}[]\n")
+    __keyword kw chars = if (kw `L.isPrefixOf` chars) && (fstRest `L.elem` " (){}[]\n,;")
                          then (kw, justRest)
                          else ("", chars)
         where rest = L.stripPrefix kw chars
@@ -115,10 +88,41 @@ module AST2 (
                         then (fromJust rest)
                         else ""
 
+    ___keyword :: L.ByteString ->  AstFn
+    ___keyword kw ""    = (endOfFileError, "")
+    ___keyword kw chars = if (kw `L.isPrefixOf` chars) && (fstRest `L.elem` " (){}[]\n,;")
+                         then (AST_VALUE [], justRest)
+                         else (AST_ERROR [], chars)
+        where rest = L.stripPrefix kw chars
+              fstRest = if (isJust rest && L.length (fromJust rest) /= 0)
+                        then L.head (fromJust rest)
+                        else ' '
+              justRest = if (isJust rest)
+                        then (fromJust rest)
+                        else ""
+
+    ___dot :: AstFn
+    ___dot ""    = (endOfFileError, "")
+    ___dot chars =
+        if L.head chars == '.'
+        then (AST_END, L.tail chars)
+        else (AST_ERROR [], chars)
+
+    ___naturalNumber :: AstFn
+    ___naturalNumber ""    = (endOfFileError, "")
+    ___naturalNumber chars =
+        if L.length ns == 0
+        then (AST_ERROR [], chars)
+        else (singleAstNode AST_NaturalNumber (Just ns) AST_END, rest)
+        where (ns, rest) = L.break (`L.notElem` "0123456789") chars
+
     __symbol :: L.ByteString -> (L.ByteString, L.ByteString)
     __symbol ""    = ("", "")
-    __symbol chars = if L.length cs == 0
-                     then ("", chars)
-                     else (cs, fromJust $ L.stripPrefix cs chars)
+    __symbol chars = if L.length cs /= 0
+                        && ((L.head chars) `L.notElem` notStart)
+                     then (cs, fromJust $ L.stripPrefix cs chars)
+                     else ("", chars)
         where cs = L.takeWhile (`L.notElem` notCs) chars
-              notCs = "()[]{} \n,;:#\"" <> (L.pack ['A'..'Z'])
+              notCs = "()[]{} \n,;:#\"."
+              notStart = (L.pack ['0'..'9']) <> (L.pack ['A'..'Z'])
+
