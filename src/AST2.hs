@@ -24,6 +24,7 @@ module AST2 (
 
     data AST_NODE_TYPE =
           AST_NaturalNumber -- 1 2 3 4 5 ...
+        | AST_String        -- "text"
         | AST_ParseError
         deriving (Show, Eq)
 
@@ -61,19 +62,30 @@ module AST2 (
 
     -- END QUANTIFIER =============================================================
 
-    __string :: L.ByteString -> (L.ByteString, L.ByteString)
-    __string ""    = ("", "") -- TODO: empty strings
-    __string chars = if   L.head chars == '"'
-                     then result
-                     else ("", chars)
+    __string' :: L.ByteString -> (Maybe L.ByteString, L.ByteString)
+    __string' ""       = (Nothing, "")
+    __string' "\"\""   = (Just "", "")
+    __string' chars    = if   L.head chars == '"'
+                         then result
+                         else (Nothing, chars)
         where (a, b)          = L.break (== '"') (L.tail chars)
               slashes         = L.takeWhile (== '\\') (L.reverse a)
               isShlashedQuote = (L.length slashes /= 0)
                                     && (odd $ L.length slashes)
               result          = if   isShlashedQuote
-                                then (( a <> "\"" <> a'), b')
-                                else (a, L.tail b)
-              (a', b')        = __string b
+                                then if isJust nextA
+                                     then (Just ( a <> "\"" <> (fromJust nextA)), nextB)
+                                     else (Nothing, b)
+                                else (Just a, L.tail b)
+              (nextA, nextB)  = __string' b
+
+    __string :: AstFn
+    __string ""    = (endOfFileError, "")
+    __string "\""  = (endOfFileError, "")
+    __string chars = if (isJust str)
+                     then (singleAstNode AST_String str AST_END, rest)
+                     else (AST_ERROR [], chars)
+        where (str, rest) = __string' chars
 
     __keyword :: L.ByteString -> L.ByteString -> (L.ByteString, L.ByteString)
     __keyword kw ""    = ("", "")
@@ -88,7 +100,7 @@ module AST2 (
                         then (fromJust rest)
                         else ""
 
-    ___keyword :: L.ByteString ->  AstFn
+    ___keyword :: L.ByteString -> AstFn
     ___keyword kw ""    = (endOfFileError, "")
     ___keyword kw chars = if (kw `L.isPrefixOf` chars) && (fstRest `L.elem` " (){}[]\n,;")
                          then (AST_VALUE [], justRest)

@@ -13,27 +13,42 @@ module AST2Spec where
             describe "__string" $ do
                 it "\"test\"xxx" $ do
                     let actual = __string "\"test\"xxx"
-                        expected = ("test", "xxx")
+                        expected = (
+                            AST_VALUE [AST_NODE {_astNodeType = AST_String, _astValue = Just "test", _astChildren = AST_END}]
+                            ,"xxx"
+                            )
                     actual `shouldBe` expected
 
                 it "\"attr=\\\"value\\\"\"xxx" $ do
                     let actual = __string "\"attr=\\\"value\\\"\"xxx"
-                        expected = ("attr=\\\"value\\\"", "xxx")
+                        expected = (
+                            AST_VALUE [AST_NODE {_astNodeType = AST_String, _astValue = Just "attr=\\\"value\\\"", _astChildren = AST_END}]
+                            ,"xxx"
+                            )
                     actual `shouldBe` expected
 
                 it "\"line1\nline2\"xxx" $ do
                     let actual = __string "\"line1\nline2\"xxx"
-                        expected = ("line1\nline2", "xxx")
+                        expected = (
+                            AST_VALUE [AST_NODE {_astNodeType = AST_String, _astValue = Just "line1\nline2", _astChildren = AST_END}],
+                            "xxx"
+                            )
                     actual `shouldBe` expected
 
                 it "\"\"xxx" $ do
                     let actual = __string "\"\"xxx"
-                        expected = ("", "xxx")
+                        expected = (
+                            AST_VALUE [AST_NODE {_astNodeType = AST_String, _astValue = Just "", _astChildren = AST_END}]
+                            ,"xxx"
+                            )
                     actual `shouldBe` expected
 
                 it "\"🧐\" xxx" $ do
                     let actual = __string "\"🧐\" xxx"
-                        expected = ("🧐", " xxx")
+                        expected = (
+                            AST_VALUE [AST_NODE {_astNodeType = AST_String, _astValue = Just "🧐", _astChildren = AST_END}]
+                            ," xxx"
+                            )
                     actual `shouldBe` expected
 
             describe "__keyword" $ do
