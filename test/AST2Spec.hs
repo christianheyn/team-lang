@@ -51,9 +51,9 @@ module AST2Spec where
                             )
                     actual `shouldBe` expected
 
-            describe "___number" $ do
+            describe "_number" $ do
                 it "123.222 xxx" $ do
-                    let actual = ___number "123.222 xxx"
+                    let actual = _number "123.222 xxx"
                         expected = (
                                 AST_VALUE [
                                     AST_NODE {_astNodeType = AST_Number, _astValue = Just "123", _astChildren = AST_VALUE []},
@@ -64,7 +64,7 @@ module AST2Spec where
                     actual `shouldBe` expected
 
                 it "-123.222 xxx" $ do
-                    let actual = ___number "-123.222 xxx"
+                    let actual = _number "-123.222 xxx"
                         expected = (
                                 AST_VALUE [],
                                 " xxx"
@@ -72,7 +72,7 @@ module AST2Spec where
                     actual `shouldBe` expected
 
                 it "123 xxx" $ do
-                    let actual = ___number "123 xxx"
+                    let actual = _number "123 xxx"
                         expected = (
                                 AST_VALUE [
                                     AST_NODE {
@@ -86,7 +86,7 @@ module AST2Spec where
                     actual `shouldBe` expected
 
                 it "1xxx" $ do
-                    let actual = ___number "1xxx"
+                    let actual = _number "1xxx"
                         expected = (
                                 AST_VALUE [
                                     AST_NODE {
@@ -100,7 +100,7 @@ module AST2Spec where
                     actual `shouldBe` expected
 
                 it "1/2 xxx" $ do
-                    let actual = ___number "1/2 xxx"
+                    let actual = _number "1/2 xxx"
                         expected = (
                                 AST_VALUE [],
                                 "xxx"
@@ -108,17 +108,42 @@ module AST2Spec where
                     actual `shouldBe` expected
 
                 it "-2/3 xxx" $ do
-                    let actual = ___number "-2/3 xxx"
+                    let actual = _number "-2/3 xxx"
                         expected = (
                                 AST_VALUE [],
                                 "xxx"
                             )
                     actual `shouldBe` expected
 
-                it "-/23 xxx" $ do
-                    let actual = ___number "-/23 xxx"
+            describe "_complexNumber" $ do
+                it "1+2i xxx" $ do
+                    let actual = _complexNumber "1+2i xxx"
                         expected = (
                                 AST_VALUE [],
-                                "xxx"
+                                " xxx"
+                            )
+                    actual `shouldBe` expected
+
+                it "1.5+2.5i xxx" $ do
+                    let actual = _complexNumber "1.5+2.5i xxx"
+                        expected = (
+                                AST_VALUE [],
+                                " xxx"
+                            )
+                    actual `shouldBe` expected
+
+                it "1/5+2/5i xxx" $ do
+                    let actual = _complexNumber "1/5+2/5i xxx"
+                        expected = (
+                                AST_VALUE [],
+                                " xxx"
+                            )
+                    actual `shouldBe` expected
+
+                it "-1/5+-2/5i xxx" $ do
+                    let actual = _complexNumber "-1/5+-2/5i xxx"
+                        expected = (
+                                AST_VALUE [],
+                                " xxx"
                             )
                     actual `shouldBe` expected

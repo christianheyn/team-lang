@@ -9,7 +9,8 @@ module AST2 (
     , __string
     , __keyword
     , ___naturalNumber
-    , ___number
+    , _number
+    , _complexNumber
     , __symbol
     ) where
 
@@ -37,6 +38,7 @@ module AST2 (
         | AST_Plus          -- +
         | AST_Divide        -- /
         | AST_Dot           -- .
+        | AST_ImaginaryUnit -- i
         | AST_String        -- "text"
         | AST_Syntax_Error
         | AST_Ignore
@@ -101,11 +103,11 @@ module AST2 (
               (nextAst, nextRest) = qExact cs rest
 
     qOr :: [AstFn] -> AstFn
-    qOr []     chars = (AST_ERROR [], chars)
-    qOr (x:_) ""    = (AST_ERROR [], "")
+    qOr []    chars  = (AST_ERROR [], chars)
+    qOr (x:_) ""     = (AST_ERROR [], "")
     qOr (c:cs) chars =
         if (isAstError ast)
-        then qOr cs rest
+        then qOr cs chars
         else (ast, rest)
         where (ast, rest) = c chars
 
@@ -169,6 +171,9 @@ module AST2 (
         then (singleAstNode t (Just s) (AST_VALUE []), L.tail chars)
         else unexpected chars
 
+    ___imaginaryUnit :: AstFn
+    ___imaginaryUnit = ___signAs AST_ImaginaryUnit "i" -- must be a Symbol
+
     ___dot :: AstFn
     ___dot = ___signAs AST_Dot "."
 
@@ -189,13 +194,21 @@ module AST2 (
         else (singleAstNode AST_Number (Just ns) (AST_VALUE []), rest)
         where (ns, rest) = L.break (`L.notElem` "0123456789") chars
 
-    ___number = qExact [
+    _number :: AstFn
+    _number = qExact [
           qOptional ___minus
         , ___naturalNumber
         , qOptional $ qOr [
               qExact [___dot, ___naturalNumber]
             , qExact [___divide, ___naturalNumber]
             ]
+        ]
+    _complexNumber :: AstFn
+    _complexNumber = qExact [
+          _number
+        , ___plus
+        , _number
+        , ___imaginaryUnit
         ]
 
     -- END NUMBERS =============================================================
