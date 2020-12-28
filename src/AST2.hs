@@ -9,6 +9,7 @@ module AST2 (
     , __string
     , __keyword
     , ___naturalNumber
+    , ___decimalNumber
     , __symbol
     ) where
 
@@ -19,8 +20,16 @@ module AST2 (
     data AST a =
           AST_VALUE a
         | AST_ERROR a
-        | AST_END
          deriving (Show, Eq)
+
+    isAstValue (AST_VALUE _) = True
+    isAstValue _             = False
+
+    isAstError ( AST_ERROR _) = True
+    isAstError _              = False
+
+    fromAST (AST_VALUE x)  = x
+    fromAST ( AST_ERROR x) = x
 
     data AST_NODE_TYPE =
           AST_NaturalNumber -- 1 2 3 4 5 ...
@@ -60,12 +69,24 @@ module AST2 (
     -- qExact     :: [AstFn] -> AstFn
     -- qOr        :: [AstFn] -> AstFn
 
+    qExact :: [AstFn] -> AstFn
+    qExact []     chars = (AST_VALUE [], chars)
+    qExact (x:[]) ""    = (AST_ERROR [], "")
+    qExact (c:cs) chars =
+        if (isAstError ast)
+        then (ast, rest)
+        else if (isAstError nextAst)
+             then (AST_ERROR ( fromAST ast ++ fromAST nextAst), nextRest)
+             else (AST_VALUE ( fromAST ast ++ fromAST nextAst), nextRest)
+        where (ast, rest) = c chars
+              (nextAst, nextRest) = qExact cs rest
+
     -- END QUANTIFIER =============================================================
 
-    __string' :: L.ByteString -> (Maybe L.ByteString, L.ByteString)
-    __string' ""       = (Nothing, "")
-    __string' "\"\""   = (Just "", "")
-    __string' chars    = if   L.head chars == '"'
+    ___collectString :: L.ByteString -> (Maybe L.ByteString, L.ByteString)
+    ___collectString ""       = (Nothing, "")
+    ___collectString "\"\""   = (Just "", "")
+    ___collectString chars    = if   L.head chars == '"'
                          then result
                          else (Nothing, chars)
         where (a, b)          = L.break (== '"') (L.tail chars)
@@ -77,15 +98,15 @@ module AST2 (
                                      then (Just ( a <> "\"" <> (fromJust nextA)), nextB)
                                      else (Nothing, b)
                                 else (Just a, L.tail b)
-              (nextA, nextB)  = __string' b
+              (nextA, nextB)  = ___collectString b
 
     __string :: AstFn
     __string ""    = (endOfFileError, "")
     __string "\""  = (endOfFileError, "")
     __string chars = if (isJust str)
-                     then (singleAstNode AST_String str AST_END, rest)
+                     then (singleAstNode AST_String str (AST_VALUE []), rest)
                      else (AST_ERROR [], chars)
-        where (str, rest) = __string' chars
+        where (str, rest) = ___collectString chars
 
     __keyword :: L.ByteString -> L.ByteString -> (L.ByteString, L.ByteString)
     __keyword kw ""    = ("", "")
@@ -113,11 +134,12 @@ module AST2 (
                         then (fromJust rest)
                         else ""
 
+    -- NUMBERS =============================================================
     ___dot :: AstFn
     ___dot ""    = (endOfFileError, "")
     ___dot chars =
         if L.head chars == '.'
-        then (AST_END, L.tail chars)
+        then (AST_VALUE [], L.tail chars)
         else (AST_ERROR [], chars)
 
     ___naturalNumber :: AstFn
@@ -125,8 +147,12 @@ module AST2 (
     ___naturalNumber chars =
         if L.length ns == 0
         then (AST_ERROR [], chars)
-        else (singleAstNode AST_NaturalNumber (Just ns) AST_END, rest)
+        else (singleAstNode AST_NaturalNumber (Just ns) (AST_VALUE []), rest)
         where (ns, rest) = L.break (`L.notElem` "0123456789") chars
+
+    ___decimalNumber = qExact [___naturalNumber, ___dot, ___naturalNumber]
+
+    -- END NUMBERS =============================================================
 
     __symbol :: L.ByteString -> (L.ByteString, L.ByteString)
     __symbol ""    = ("", "")

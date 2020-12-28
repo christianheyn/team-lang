@@ -14,7 +14,7 @@ module AST2Spec where
                 it "\"test\"xxx" $ do
                     let actual = __string "\"test\"xxx"
                         expected = (
-                            AST_VALUE [AST_NODE {_astNodeType = AST_String, _astValue = Just "test", _astChildren = AST_END}]
+                            AST_VALUE [AST_NODE {_astNodeType = AST_String, _astValue = Just "test", _astChildren = AST_VALUE []}]
                             ,"xxx"
                             )
                     actual `shouldBe` expected
@@ -22,7 +22,7 @@ module AST2Spec where
                 it "\"attr=\\\"value\\\"\"xxx" $ do
                     let actual = __string "\"attr=\\\"value\\\"\"xxx"
                         expected = (
-                            AST_VALUE [AST_NODE {_astNodeType = AST_String, _astValue = Just "attr=\\\"value\\\"", _astChildren = AST_END}]
+                            AST_VALUE [AST_NODE {_astNodeType = AST_String, _astValue = Just "attr=\\\"value\\\"", _astChildren = AST_VALUE []}]
                             ,"xxx"
                             )
                     actual `shouldBe` expected
@@ -30,7 +30,7 @@ module AST2Spec where
                 it "\"line1\nline2\"xxx" $ do
                     let actual = __string "\"line1\nline2\"xxx"
                         expected = (
-                            AST_VALUE [AST_NODE {_astNodeType = AST_String, _astValue = Just "line1\nline2", _astChildren = AST_END}],
+                            AST_VALUE [AST_NODE {_astNodeType = AST_String, _astValue = Just "line1\nline2", _astChildren = AST_VALUE []}],
                             "xxx"
                             )
                     actual `shouldBe` expected
@@ -38,7 +38,7 @@ module AST2Spec where
                 it "\"\"xxx" $ do
                     let actual = __string "\"\"xxx"
                         expected = (
-                            AST_VALUE [AST_NODE {_astNodeType = AST_String, _astValue = Just "", _astChildren = AST_END}]
+                            AST_VALUE [AST_NODE {_astNodeType = AST_String, _astValue = Just "", _astChildren = AST_VALUE []}]
                             ,"xxx"
                             )
                     actual `shouldBe` expected
@@ -46,56 +46,18 @@ module AST2Spec where
                 it "\"🧐\" xxx" $ do
                     let actual = __string "\"🧐\" xxx"
                         expected = (
-                            AST_VALUE [AST_NODE {_astNodeType = AST_String, _astValue = Just "🧐", _astChildren = AST_END}]
+                            AST_VALUE [AST_NODE {_astNodeType = AST_String, _astValue = Just "🧐", _astChildren = AST_VALUE []}]
                             ," xxx"
                             )
                     actual `shouldBe` expected
 
-            describe "__keyword" $ do
-                it "import xxx" $ do
-                    let actual = __keyword "import" "import xxx"
-                        expected = ("import", " xxx")
-                    actual `shouldBe` expected
+            describe "___decimalNumber" $ do
+                it "123.222 xxx" $ do
+                    let actual = ___decimalNumber "123.222 xxx"
+                        expected = (
+                            AST_VALUE [
+                                AST_NODE {_astNodeType = AST_NaturalNumber, _astValue = Just "123", _astChildren = AST_VALUE []},AST_NODE {_astNodeType = AST_NaturalNumber, _astValue = Just "222", _astChildren = AST_VALUE []}]," xxx")
 
-                it "import(xxx" $ do
-                    let actual = __keyword "import" "import(xxx"
-                        expected = ("import", "(xxx")
-                    actual `shouldBe` expected
-
-                it "import(🧐" $ do
-                    let actual = __keyword "import" "import(🧐"
-                        expected = ("import", "(🧐")
-                    actual `shouldBe` expected
-
-            describe "__symbol" $ do
-                it "xxx xxx" $ do
-                    let actual = __symbol "xxx xxx"
-                        expected = ("xxx", " xxx")
-                    actual `shouldBe` expected
-
-                it "~~µ??// xxx" $ do
-                    let actual = __symbol "~~µ??// xxx"
-                        expected = ("~~µ??//", " xxx")
-                    actual `shouldBe` expected
-
-                it "?🐵 xxx" $ do
-                    let actual = __symbol "?🐵 xxx"
-                        expected = ("?🐵", " xxx")
-                    actual `shouldBe` expected
-
-                it "aBC xxx" $ do
-                    let actual = __symbol "aBC xxx"
-                        expected = ("aBC", " xxx")
-                    actual `shouldBe` expected
-
-                it "1xx xxx" $ do
-                    let actual = __symbol "1xx xxx"
-                        expected = ("", "1xx xxx")
-                    actual `shouldBe` expected
-
-                it "-12 xxx" $ do
-                    let actual = __symbol "-12 xxx"
-                        expected = ("", "-12 xxx")
                     actual `shouldBe` expected
 
             describe "___naturalNumber" $ do
@@ -106,7 +68,7 @@ module AST2Spec where
                                     AST_NODE {
                                         _astNodeType = AST_NaturalNumber,
                                         _astValue = Just "123",
-                                        _astChildren = AST_END
+                                        _astChildren = AST_VALUE []
                                     }
                                 ],
                                 " xxx"
@@ -120,7 +82,7 @@ module AST2Spec where
                                     AST_NODE {
                                         _astNodeType = AST_NaturalNumber,
                                         _astValue = Just "1",
-                                        _astChildren = AST_END
+                                        _astChildren = AST_VALUE []
                                     }
                                 ],
                                 "xxx"
