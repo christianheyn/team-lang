@@ -33,6 +33,7 @@ library
       Util.Regex
       AST
       AST2
+      AST2.Types
   other-modules:
       Paths_team_lang
   hs-source-dirs:

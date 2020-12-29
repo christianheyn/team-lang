@@ -17,42 +17,7 @@ module AST2 (
     import qualified Data.ByteString.Lazy.Char8 as L
     import Data.List (find, null, or, break)
     import Data.Maybe (isJust, fromJust)
-
-    data AST a =
-          AST_VALUE a
-        | AST_ERROR a
-         deriving (Show, Eq)
-
-    isAstValue (AST_VALUE _) = True
-    isAstValue _             = False
-
-    isAstError ( AST_ERROR _) = True
-    isAstError _              = False
-
-    fromAST (AST_VALUE x)  = x
-    fromAST ( AST_ERROR x) = x
-
-    data AST_NODE_TYPE =
-          AST_Number -- 1 2 3 4 5 ...
-        | AST_Minus         -- -
-        | AST_Plus          -- +
-        | AST_Divide        -- /
-        | AST_Dot           -- .
-        | AST_ImaginaryUnit -- i
-        | AST_String        -- "text"
-        | AST_Syntax_Error
-        | AST_Ignore
-        deriving (Show, Eq)
-
-    data AST_NODE = AST_NODE {
-          _astNodeType :: AST_NODE_TYPE
-        , _astValue    :: Maybe L.ByteString
-        , _astChildren :: AST [AST_NODE]
-        } deriving (Show, Eq)
-
-    type AstFn = L.ByteString -> (AST [AST_NODE], L.ByteString)
-
-    -- combinedAs :: AST_NODE_TYPE -> AstFn -> AstFn
+    import AST2.Types
 
     singleAstNode t val children = AST_VALUE [
         AST_NODE {
@@ -153,7 +118,7 @@ module AST2 (
 
     ___keyword :: L.ByteString -> AstFn
     ___keyword kw ""    = (endOfFileError, "")
-    ___keyword kw chars = if (kw `L.isPrefixOf` chars) && (fstRest `L.elem` " (){}[]\n,;")
+    ___keyword kw chars = if (kw `L.isPrefixOf` chars) && (fstRest `L.elem` " (){}[]\n,;:")
                          then (AST_VALUE [], justRest)
                          else (AST_ERROR [], chars)
         where rest = L.stripPrefix kw chars
@@ -186,40 +151,56 @@ module AST2 (
     ___divide :: AstFn
     ___divide = ___signAs AST_Divide "/"
 
-    ___naturalNumber :: AstFn
+    -- AST_NaturalNumber  -- N ; 1 2 3 4 5 ...
+    -- AST_IntegerNumber  -- Z ; -3
+    -- AST_RealNumber     -- R ; -3.5
+    -- AST_RationalNumber -- Q ; 2/3
+    -- AST_ComplexNumber  -- C ; 2+4i
+    -- AST_ImaginaryUnit  -- i
+
+    ___naturalNumber :: AstFn -- 1, 2, 3 -- TODO: no zero at start
     ___naturalNumber ""    = (endOfFileError, "")
     ___naturalNumber chars =
         if L.length ns == 0
         then unexpected chars
-        else (singleAstNode AST_Number (Just ns) (AST_VALUE []), rest)
+        else (singleAstNode AST_NaturalNumber (Just ns) (AST_VALUE []), rest)
         where (ns, rest) = L.break (`L.notElem` "0123456789") chars
 
-    _number :: AstFn
-    _number = qExact [
-          qOptional ___minus
-        , ___naturalNumber
-        , qOptional $ qOr [
-              qExact [___dot, ___naturalNumber]
-            , qExact [___divide, ___naturalNumber]
-            ]
-        ]
+    ___integerNumber = -- -123
+        (combinedAs AST_IntegerNumber)
+        . qExact [qOptional ___minus, ___naturalNumber]
+
+    ___rationalNumber = -- -2/3
+        (wrappedAs AST_RationalNumber)
+        . qExact [___integerNumber, ___divide, ___naturalNumber]
+
+    ___realNumber = -- -3.5
+        (combinedAs AST_RealNumber)
+        . qExact [___integerNumber, ___dot, ___naturalNumber]
+
     _complexNumber :: AstFn
-    _complexNumber = qExact [
-          _number
+    _complexNumber = (wrappedAs AST_ComplexNumber) . qExact [
+          qOr [___realNumber, ___integerNumber]
         , ___plus
-        , _number
-        , ___imaginaryUnit
+        , qOr [___realNumber, ___integerNumber] -- TODO: knowenError $
+        , ___imaginaryUnit -- TODO: knowenError
+        ]
+
+    _number :: AstFn
+    _number = (wrappedAs AST_Number) . qOr [
+          ___realNumber
+        , ___rationalNumber
+        , ___integerNumber
         ]
 
     -- END NUMBERS =============================================================
 
     __symbol :: L.ByteString -> (L.ByteString, L.ByteString)
     __symbol ""    = ("", "")
-    __symbol chars = if L.length cs /= 0
-                        && ((L.head chars) `L.notElem` notStart)
-                     then (cs, fromJust $ L.stripPrefix cs chars)
-                     else ("", chars)
+    __symbol chars =
+        if L.length cs /= 0 && ((L.head chars) `L.notElem` notStart)
+        then (cs, fromJust $ L.stripPrefix cs chars)
+        else ("", chars)
         where cs = L.takeWhile (`L.notElem` notCs) chars
-              notCs = "()[]{} \n,;:#\"."
-              notStart = (L.pack ['0'..'9']) <> (L.pack ['A'..'Z'])
-
+              notCs = "()[]{} \n,;:#\"." <> (L.pack ['A'..'Z'])
+              notStart = (L.pack ['0'..'9'])
