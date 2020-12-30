@@ -7,6 +7,7 @@ module AST2.Types (
     , AstFn(..)
     , isAstValue
     , isAstError
+    , isAstKnowenError
     , fromAST
     , combinedAs
     , wrappedAs
@@ -69,10 +70,6 @@ module AST2.Types (
         |   AST_OctalNumber    -- 8|010011
         |   AST_HexNumber      -- 16|010011
 
-        | AST_Minus         -- -
-        | AST_Plus          -- +
-        | AST_Divide        -- /
-        | AST_Dot           -- .
         | AST_String        -- "text"
         | AST_Open          -- ( { [
         | AST_Close         -- ] } )

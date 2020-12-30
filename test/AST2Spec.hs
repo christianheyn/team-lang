@@ -118,6 +118,30 @@ module AST2Spec where
                             )
                     actual `shouldBe` expected
 
+                it "2|01101010 xxx" $ do
+                    let actual = _number "2|01101010 xxx"
+                        expected = (
+                                AST_VALUE [
+                                    AST_NODE {_astNodeType = AST_Number, _astValue = Nothing, _astChildren = AST_VALUE [
+                                        AST_NODE {_astNodeType = AST_BinaryNumber, _astValue = Just "01101010", _astChildren = AST_VALUE []}
+                                    ]}
+                                ]
+                                ," xxx"
+                            )
+                    actual `shouldBe` expected
+
+                it "2|-1101010 xxx" $ do
+                    let actual = _number "2|-1101010 xxx"
+                        expected = (
+                                AST_VALUE [
+                                    AST_NODE {_astNodeType = AST_Number, _astValue = Nothing, _astChildren = AST_VALUE [
+                                        AST_NODE {_astNodeType = AST_BinaryNumber, _astValue = Just "-1101010", _astChildren = AST_VALUE []}
+                                    ]}
+                                ]
+                                ," xxx"
+                            )
+                    actual `shouldBe` expected
+
             describe "_complexNumber" $ do
                 it "1+2i xxx" $ do
                     let actual = _complexNumber "1+2i xxx"

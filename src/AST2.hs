@@ -85,7 +85,7 @@ module AST2 (
     qOr []    chars  = (AST_ERROR [], chars)
     qOr (x:_) ""     = (AST_ERROR [], "")
     qOr (c:cs) chars =
-        if (isAstError ast)
+        if (isAstError ast) -- TODO: break up on isAstKnowenError
         then qOr cs chars
         else (ast, rest)
         where (ast, rest) = c chars
@@ -162,16 +162,10 @@ module AST2 (
     ___imaginaryUnit = (___signAs AST_ImaginaryUnit 'i')
 
     ___dot :: AstFn
-    ___dot = ___signAs AST_Dot '.'
-
-    ___plus :: AstFn
-    ___plus = ___signAs AST_Plus '+'
+    ___dot = ___signAs AST_Ignore '.'
 
     ___minus :: AstFn
-    ___minus = ___signAs AST_Minus '-'
-
-    ___divide :: AstFn
-    ___divide = ___signAs AST_Divide '/'
+    ___minus = ___signAs AST_Ignore '-'
 
     ___sharp :: AstFn
     ___sharp = ___signAs AST_Comment '#'
@@ -225,17 +219,20 @@ module AST2 (
         else (singleAstNode AST_NaturalNumber (Just ns) (AST_VALUE []), rest)
         where (ns, rest) = L.break (`L.notElem` "0123456789") chars
 
+    ___integerNumber :: AstFn
     ___integerNumber = -- -123
         (combinedAs AST_IntegerNumber)
         . qExact [qOptional ___minus, ___naturalNumber]
 
+    ___rationalNumber :: AstFn
     ___rationalNumber = -- -2/3
         (wrappedAs AST_RationalNumber)
         . qExact [
               ___integerNumber
-            , qJustAppear ___divide
+            , qJustAppear (___signAs AST_Ignore '/')
             , ___naturalNumber]
 
+    ___realNumber :: AstFn
     ___realNumber = -- -3.5
         (wrappedAs AST_RealNumber)
         . qExact [
@@ -243,20 +240,41 @@ module AST2 (
             , qJustAppear ___dot
             , ___naturalNumber]
 
+    ___binaryNumber :: AstFn
+    ___binaryNumber =
+        (combinedAs AST_BinaryNumber) . qExact [
+              qJustAppear $ ___signAs AST_Ignore '2'
+            , qJustAppear $ ___signAs AST_Ignore '|'
+            , qOptional $ ___minus
+            , qOneOrMore $ qOr [
+                  ___signAs AST_NaturalNumber '0'
+                , ___signAs AST_NaturalNumber '1'
+                ]
+            ]
+
+    -- ___octalNumber :: AstFn
+    -- ___octalNumber = -- 8|1000101
+
+    -- ___hexNumber :: AstFn
+    -- ___hexNumber = -- 16|afaf0092d
+
     _complexNumber :: AstFn
     _complexNumber = (wrappedAs AST_ComplexNumber) . qExact [
           qOr [___realNumber, ___integerNumber]
-        , qJustAppear ___plus
+        , qJustAppear (___signAs AST_Ignore '+')
         , qOr [___realNumber, ___integerNumber] -- TODO: knowenError $
-        , qJustAppear ___imaginaryUnit -- TODO: knowenError
+        , qJustAppear (___signAs AST_Ignore 'i') -- TODO: knowenError
         ]
 
     _number :: AstFn
     _number = (wrappedAs AST_Number) . qOr [
           ___realNumber
+        , ___binaryNumber
         , ___rationalNumber
         , ___integerNumber
         ]
+
+    number = token $ _number
 
     -- END NUMBERS =============================================================
 
