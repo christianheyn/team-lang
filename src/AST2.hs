@@ -6,11 +6,12 @@ module AST2 (
       AST(..)
     , AST_NODE_TYPE(..)
     , AST_NODE(..)
-    , __string
+    , _string
     , __keyword
     , ___naturalNumber
     , _number
     , _complexNumber
+    , _primitive
     , __symbol
     ) where
 
@@ -76,6 +77,13 @@ module AST2 (
         else (ast, rest)
         where (ast, rest) = c chars
 
+    qJustAppear :: AstFn -> AstFn
+    qJustAppear check chars =
+        if (isAstError ast)
+        then (ast, rest)
+        else (AST_VALUE [], rest)
+        where (ast, rest) = check chars
+
     -- END QUANTIFIER =============================================================
 
     ___collectString :: L.ByteString -> (Maybe L.ByteString, L.ByteString)
@@ -95,10 +103,10 @@ module AST2 (
                                 else (Just a, L.tail b)
               (nextA, nextB)  = ___collectString b
 
-    __string :: AstFn
-    __string ""    = (endOfFileError, "")
-    __string "\""  = (endOfFileError, "")
-    __string chars = if (isJust str)
+    _string :: AstFn
+    _string ""    = (endOfFileError, "")
+    _string "\""  = (endOfFileError, "")
+    _string chars = if (isJust str)
                      then (singleAstNode AST_String str (AST_VALUE []), rest)
                      else (AST_ERROR [], chars)
         where (str, rest) = ___collectString chars
@@ -151,13 +159,6 @@ module AST2 (
     ___divide :: AstFn
     ___divide = ___signAs AST_Divide "/"
 
-    -- AST_NaturalNumber  -- N ; 1 2 3 4 5 ...
-    -- AST_IntegerNumber  -- Z ; -3
-    -- AST_RealNumber     -- R ; -3.5
-    -- AST_RationalNumber -- Q ; 2/3
-    -- AST_ComplexNumber  -- C ; 2+4i
-    -- AST_ImaginaryUnit  -- i
-
     ___naturalNumber :: AstFn -- 1, 2, 3 -- TODO: no zero at start
     ___naturalNumber ""    = (endOfFileError, "")
     ___naturalNumber chars =
@@ -172,18 +173,24 @@ module AST2 (
 
     ___rationalNumber = -- -2/3
         (wrappedAs AST_RationalNumber)
-        . qExact [___integerNumber, ___divide, ___naturalNumber]
+        . qExact [
+              ___integerNumber
+            , qJustAppear ___divide
+            , ___naturalNumber]
 
     ___realNumber = -- -3.5
         (combinedAs AST_RealNumber)
-        . qExact [___integerNumber, ___dot, ___naturalNumber]
+        . qExact [
+              ___integerNumber
+            , qJustAppear ___dot
+            , ___naturalNumber]
 
     _complexNumber :: AstFn
     _complexNumber = (wrappedAs AST_ComplexNumber) . qExact [
           qOr [___realNumber, ___integerNumber]
-        , ___plus
+        , qJustAppear ___plus
         , qOr [___realNumber, ___integerNumber] -- TODO: knowenError $
-        , ___imaginaryUnit -- TODO: knowenError
+        , qJustAppear ___imaginaryUnit -- TODO: knowenError
         ]
 
     _number :: AstFn
@@ -194,6 +201,12 @@ module AST2 (
         ]
 
     -- END NUMBERS =============================================================
+
+    _primitive = qOr [
+        _complexNumber
+        , _number
+        , _string
+        ]
 
     __symbol :: L.ByteString -> (L.ByteString, L.ByteString)
     __symbol ""    = ("", "")

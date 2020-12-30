@@ -59,7 +59,6 @@ module AST2.Types (
     data AST_NODE_TYPE =
         -- NUMBERS ============
           AST_Number
-
         |   AST_NaturalNumber  -- N ; 1 2 3 4 5 ...
         |   AST_IntegerNumber  -- Z ; -3
         |   AST_RealNumber     -- R ; -3.5

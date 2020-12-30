@@ -10,9 +10,9 @@ module AST2Spec where
     spec :: Spec
     spec = do
         describe "AST2" $ do
-            describe "__string" $ do
+            describe "_string" $ do
                 it "\"test\"xxx" $ do
-                    let actual = __string "\"test\"xxx"
+                    let actual = _string "\"test\"xxx"
                         expected = (
                             AST_VALUE [AST_NODE {_astNodeType = AST_String, _astValue = Just "test", _astChildren = AST_VALUE []}]
                             ,"xxx"
@@ -20,7 +20,7 @@ module AST2Spec where
                     actual `shouldBe` expected
 
                 it "\"attr=\\\"value\\\"\"xxx" $ do
-                    let actual = __string "\"attr=\\\"value\\\"\"xxx"
+                    let actual = _string "\"attr=\\\"value\\\"\"xxx"
                         expected = (
                             AST_VALUE [AST_NODE {_astNodeType = AST_String, _astValue = Just "attr=\\\"value\\\"", _astChildren = AST_VALUE []}]
                             ,"xxx"
@@ -28,7 +28,7 @@ module AST2Spec where
                     actual `shouldBe` expected
 
                 it "\"line1\nline2\"xxx" $ do
-                    let actual = __string "\"line1\nline2\"xxx"
+                    let actual = _string "\"line1\nline2\"xxx"
                         expected = (
                             AST_VALUE [AST_NODE {_astNodeType = AST_String, _astValue = Just "line1\nline2", _astChildren = AST_VALUE []}],
                             "xxx"
@@ -36,7 +36,7 @@ module AST2Spec where
                     actual `shouldBe` expected
 
                 it "\"\"xxx" $ do
-                    let actual = __string "\"\"xxx"
+                    let actual = _string "\"\"xxx"
                         expected = (
                             AST_VALUE [AST_NODE {_astNodeType = AST_String, _astValue = Just "", _astChildren = AST_VALUE []}]
                             ,"xxx"
@@ -44,7 +44,7 @@ module AST2Spec where
                     actual `shouldBe` expected
 
                 it "\"🧐\" xxx" $ do
-                    let actual = __string "\"🧐\" xxx"
+                    let actual = _string "\"🧐\" xxx"
                         expected = (
                             AST_VALUE [AST_NODE {_astNodeType = AST_String, _astValue = Just "🧐", _astChildren = AST_VALUE []}]
                             ," xxx"
@@ -139,5 +139,14 @@ module AST2Spec where
             --                 )
             --         actual `shouldBe` expected
 
- -- hex   : #09fa4
- -- binary: ;011000
+            describe "_primitive" $ do
+                it "13 xxx; 1/3 xxx; 1.3 xxx; 1+3i xxx" $ do
+                    let actual = fmap (snd . _primitive) [
+                                      "\"text\" xxx"
+                                    , "13 xxx"
+                                    , "1/3 xxx"
+                                    , "1.3 xxx"
+                                    , "1+3i xxx"
+                                    ]
+                        expected = take (length actual) (repeat " xxx")
+                    actual `shouldBe` expected
