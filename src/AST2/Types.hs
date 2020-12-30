@@ -65,9 +65,9 @@ module AST2.Types (
         |   AST_RationalNumber -- Q ; 2/3
         |   AST_ComplexNumber  -- C ; 2+4i
         |   AST_ImaginaryUnit  -- i
-        |   AST_BinaryNumber   -- 2`010011
-        |   AST_OctalNumber    -- 8`010011
-        |   AST_HexNumber      -- 16`010011
+        |   AST_BinaryNumber   -- 2-010011
+        |   AST_OctalNumber    -- 8-010011
+        |   AST_HexNumber      -- 16-010011
 
         | AST_Minus         -- -
         | AST_Plus          -- +
@@ -78,6 +78,8 @@ module AST2.Types (
         | AST_Close         -- ] } )
         | AST_At            -- @
         | AST_Comment       -- # comment
+        | AST_Coma          -- ,
+        | AST_Semicolon     -- ;
         | AST_Space
         | AST_Syntax_Error
         | AST_Ignore

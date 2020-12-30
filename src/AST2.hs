@@ -140,55 +140,64 @@ module AST2 (
                         then (fromJust rest)
                         else ""
 
-    ___signAs :: AST_NODE_TYPE -> L.ByteString -> AstFn
-    ___signAs t s chars =
-        if L.head chars == L.head s
-        then (singleAstNode t (Just s) (AST_VALUE []), L.tail chars)
+    ___signAs :: AST_NODE_TYPE -> Char -> AstFn
+    ___signAs t char chars =
+        if L.head chars == char
+        then (singleAstNode t (Just (L.pack (char:[]))) (AST_VALUE []), L.tail chars)
         else unexpected chars
 
     -- SIGNS =============================================================
 
     ___imaginaryUnit :: AstFn
-    ___imaginaryUnit = (___signAs AST_ImaginaryUnit "i")
+    ___imaginaryUnit = (___signAs AST_ImaginaryUnit 'i')
 
     ___dot :: AstFn
-    ___dot = ___signAs AST_Dot "."
+    ___dot = ___signAs AST_Dot '.'
 
     ___plus :: AstFn
-    ___plus = ___signAs AST_Plus "+"
+    ___plus = ___signAs AST_Plus '+'
 
     ___minus :: AstFn
-    ___minus = ___signAs AST_Minus "-"
+    ___minus = ___signAs AST_Minus '-'
 
     ___divide :: AstFn
-    ___divide = ___signAs AST_Divide "/"
+    ___divide = ___signAs AST_Divide '/'
 
     ___sharp :: AstFn
-    ___sharp = ___signAs AST_Comment "#"
+    ___sharp = ___signAs AST_Comment '#'
 
     -- ()
     ___openRound :: AstFn
-    ___openRound = ___signAs AST_Open "("
+    ___openRound = ___signAs AST_Open '('
 
     ___closeRound :: AstFn
-    ___closeRound = ___signAs AST_Close ")"
+    ___closeRound = ___signAs AST_Close ')'
 
     -- {}
     ___openCurly :: AstFn
-    ___openCurly = ___signAs AST_Open "{"
+    ___openCurly = ___signAs AST_Open '{'
 
     ___closeCurly :: AstFn
-    ___closeCurly = ___signAs AST_Close "}"
+    ___closeCurly = ___signAs AST_Close '}'
 
     -- []
     ___openSquare :: AstFn
-    ___openSquare = ___signAs AST_Open "{"
+    ___openSquare = ___signAs AST_Open '{'
 
     ___closeSquare :: AstFn
-    ___closeSquare = ___signAs AST_Close "}"
+    ___closeSquare = ___signAs AST_Close '}'
 
     ___At :: AstFn
-    ___At = ___signAs AST_At "@"
+    ___At = ___signAs AST_At '@'
+
+    ___Coma :: AstFn
+    ___Coma = ___signAs AST_Coma ','
+
+    ___Semicolon :: AstFn
+    ___Semicolon = ___signAs AST_Semicolon ';'
+
+    ___StringStart :: AstFn
+    ___StringStart = ___signAs AST_String '"'
 
     __lookForward :: AstFn -> AstFn
     __lookForward check chars =
@@ -270,6 +279,9 @@ module AST2 (
                         , ___closeCurly
                         , ___openSquare
                         , ___closeSquare
+                        , ___Coma
+                        , ___Semicolon
+                        , ___StringStart
                         ]
 
     _primitive = token $ qOr [
