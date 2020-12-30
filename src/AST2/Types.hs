@@ -65,9 +65,9 @@ module AST2.Types (
         |   AST_RationalNumber -- Q ; 2/3
         |   AST_ComplexNumber  -- C ; 2+4i
         |   AST_ImaginaryUnit  -- i
-        |   AST_BinaryNumber   -- 2-010011
-        |   AST_OctalNumber    -- 8-010011
-        |   AST_HexNumber      -- 16-010011
+        |   AST_BinaryNumber   -- 2|010011
+        |   AST_OctalNumber    -- 8|010011
+        |   AST_HexNumber      -- 16|010011
 
         | AST_Minus         -- -
         | AST_Plus          -- +

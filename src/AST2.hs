@@ -50,7 +50,17 @@ module AST2 (
 
     -- QUANTIFIER =============================================================
 
-    -- qOneOrMore :: [AstFn] -> AstFn
+    qZeroOrMore :: AstFn -> AstFn
+    qZeroOrMore check chars =
+        if isAstError ast
+        then (AST_VALUE [], chars)
+        else (ast <> nextAst, nextRest)
+        where (ast, rest) = check chars
+              (nextAst, nextRest) = qZeroOrMore check rest
+
+    qOneOrMore :: AstFn -> AstFn
+    qOneOrMore check = qExact [check, qZeroOrMore check]
+
     qOptional :: AstFn -> AstFn
     qOptional _ ""        = (AST_VALUE [], "")
     qOptional check chars =
@@ -268,9 +278,13 @@ module AST2 (
 
     token check = qExact [
           check
-        , qOptional $ qOr [_spaceEOF, _comment]
-        , __lookForward xs ]
-        where xs = qOr [
+        , qOr [
+              __lookForward xs
+            , (wrappedAs AST_Ignore) . _ignored
+            ]
+        ]
+        where _ignored = qZeroOrMore (qOr [_spaceEOF, _comment])
+              xs = qOr [
                           ___dot
                         , ___sharp
                         , ___openRound
@@ -299,3 +313,4 @@ module AST2 (
         where cs = L.takeWhile (`L.notElem` notCs) chars
               notCs = "()[]{} \n,;:#\"." <> (L.pack ['A'..'Z'])
               notStart = (L.pack ['0'..'9'])
+
