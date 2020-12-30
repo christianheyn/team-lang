@@ -12,11 +12,14 @@ module AST2 (
     , _number
     , _complexNumber
     , _primitive
+    , _comment
     , __symbol
     ) where
 
+
     import qualified Data.ByteString.Lazy.Char8 as L
     import Data.List (find, null, or, break)
+    import Data.Char (isSpace)
     import Data.Maybe (isJust, fromJust)
     import AST2.Types
 
@@ -137,15 +140,16 @@ module AST2 (
                         then (fromJust rest)
                         else ""
 
-    -- NUMBERS =============================================================
     ___signAs :: AST_NODE_TYPE -> L.ByteString -> AstFn
     ___signAs t s chars =
         if L.head chars == L.head s
         then (singleAstNode t (Just s) (AST_VALUE []), L.tail chars)
         else unexpected chars
 
+    -- SIGNS =============================================================
+
     ___imaginaryUnit :: AstFn
-    ___imaginaryUnit = ___signAs AST_ImaginaryUnit "i" -- must be a Symbol
+    ___imaginaryUnit = (___signAs AST_ImaginaryUnit "i")
 
     ___dot :: AstFn
     ___dot = ___signAs AST_Dot "."
@@ -159,6 +163,41 @@ module AST2 (
     ___divide :: AstFn
     ___divide = ___signAs AST_Divide "/"
 
+    ___sharp :: AstFn
+    ___sharp = ___signAs AST_Comment "#"
+
+    -- ()
+    ___openRound :: AstFn
+    ___openRound = ___signAs AST_Open "("
+
+    ___closeRound :: AstFn
+    ___closeRound = ___signAs AST_Close ")"
+
+    -- {}
+    ___openCurly :: AstFn
+    ___openCurly = ___signAs AST_Open "{"
+
+    ___closeCurly :: AstFn
+    ___closeCurly = ___signAs AST_Close "}"
+
+    -- []
+    ___openSquare :: AstFn
+    ___openSquare = ___signAs AST_Open "{"
+
+    ___closeSquare :: AstFn
+    ___closeSquare = ___signAs AST_Close "}"
+
+    ___At :: AstFn
+    ___At = ___signAs AST_At "@"
+
+    __lookForward :: AstFn -> AstFn
+    __lookForward check chars =
+        if (isAstError ast)
+        then (AST_ERROR [], chars)
+        else (AST_VALUE [], chars)
+        where (ast, rest) = check chars
+
+    -- NUMBERS =============================================================
     ___naturalNumber :: AstFn -- 1, 2, 3 -- TODO: no zero at start
     ___naturalNumber ""    = (endOfFileError, "")
     ___naturalNumber chars =
@@ -179,7 +218,7 @@ module AST2 (
             , ___naturalNumber]
 
     ___realNumber = -- -3.5
-        (combinedAs AST_RealNumber)
+        (wrappedAs AST_RealNumber)
         . qExact [
               ___integerNumber
             , qJustAppear ___dot
@@ -202,7 +241,38 @@ module AST2 (
 
     -- END NUMBERS =============================================================
 
-    _primitive = qOr [
+    __commentText :: AstFn
+    __commentText chars =
+        (singleAstNode AST_Comment (Just ns) (AST_VALUE []), rest)
+        where (ns, rest) = L.break (== '\n') chars
+
+    _comment :: AstFn
+    _comment = (combinedAs AST_Comment) . qExact [___sharp, __commentText]
+
+    _spaceEOF :: AstFn
+    _spaceEOF ""    = (AST_VALUE [], "")
+    _spaceEOF chars =
+        if L.length ns == 0
+        then (AST_ERROR [], rest)
+        else (singleAstNode AST_Space (Just ns) (AST_VALUE []), rest)
+        where (ns, rest) = L.break (not . isSpace) chars
+
+    token check = qExact [
+          check
+        , qOptional $ qOr [_spaceEOF, _comment]
+        , __lookForward xs ]
+        where xs = qOr [
+                          ___dot
+                        , ___sharp
+                        , ___openRound
+                        , ___closeRound
+                        , ___openCurly
+                        , ___closeCurly
+                        , ___openSquare
+                        , ___closeSquare
+                        ]
+
+    _primitive = token $ qOr [
         _complexNumber
         , _number
         , _string

@@ -65,27 +65,20 @@ module AST2.Types (
         |   AST_RationalNumber -- Q ; 2/3
         |   AST_ComplexNumber  -- C ; 2+4i
         |   AST_ImaginaryUnit  -- i
-        |   AST_Base_2_Number  -- 2`010011
-        |   AST_Base_3_Number  -- 3`010011
-        |   AST_Base_4_Number  -- 4`010011
-        |   AST_Base_5_Number  -- 5`010011
-        |   AST_Base_6_Number  -- 6`010011
-        |   AST_Base_7_Number  -- 7`010011
-        |   AST_Base_8_Number  -- 8`010011
-        |   AST_Base_9_Number  -- 9`010011
-        |   AST_Base_10_Number -- 10`010011
-        |   AST_Base_11_Number -- 11`010011
-        |   AST_Base_12_Number -- 12`010011
-        |   AST_Base_13_Number -- 13`010011
-        |   AST_Base_14_Number -- 14`010011
-        |   AST_Base_15_Number -- 15`010011
-        |   AST_Base_16_Number -- 16`010011
+        |   AST_BinaryNumber   -- 2`010011
+        |   AST_OctalNumber    -- 8`010011
+        |   AST_HexNumber      -- 16`010011
 
         | AST_Minus         -- -
         | AST_Plus          -- +
         | AST_Divide        -- /
         | AST_Dot           -- .
         | AST_String        -- "text"
+        | AST_Open          -- ( { [
+        | AST_Close         -- ] } )
+        | AST_At            -- @
+        | AST_Comment       -- # comment
+        | AST_Space
         | AST_Syntax_Error
         | AST_Ignore
         | AST_Combination
@@ -148,3 +141,4 @@ module AST2.Types (
                             , _astChildren = ast
                             }
                      ]
+
