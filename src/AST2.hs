@@ -252,11 +252,26 @@ module AST2 (
                 ]
             ]
 
-    -- ___octalNumber :: AstFn
-    -- ___octalNumber = -- 8|1000101
+    ___octalNumber :: AstFn
+    ___octalNumber =
+        (combinedAs AST_OctalNumber) . qExact [
+              qJustAppear $ ___signAs AST_Ignore '8'
+            , qJustAppear $ ___signAs AST_Ignore '|'
+            , qOptional $ ___minus
+            , qOneOrMore $
+                qOr $ fmap (___signAs AST_NaturalNumber) ['0'..'7']
+            ]
 
-    -- ___hexNumber :: AstFn
-    -- ___hexNumber = -- 16|afaf0092d
+    ___hexNumber :: AstFn
+    ___hexNumber =
+        (combinedAs AST_HexNumber) . qExact [
+              qJustAppear $ ___signAs AST_Ignore '1'
+            , qJustAppear $ ___signAs AST_Ignore '6'
+            , qJustAppear $ ___signAs AST_Ignore '|'
+            , qOptional $ ___minus
+            , qOneOrMore $
+                qOr $ fmap (___signAs AST_NaturalNumber) (['0'..'9'] ++ ['a'..'f'])
+            ]
 
     _complexNumber :: AstFn
     _complexNumber = (wrappedAs AST_ComplexNumber) . qExact [
@@ -270,11 +285,14 @@ module AST2 (
     _number = (wrappedAs AST_Number) . qOr [
           ___realNumber
         , ___binaryNumber
+        , ___octalNumber
+        , ___hexNumber
         , ___rationalNumber
         , ___integerNumber
         ]
 
     number = token $ _number
+
 
     -- END NUMBERS =============================================================
 

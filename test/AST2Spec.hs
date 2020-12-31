@@ -142,6 +142,54 @@ module AST2Spec where
                             )
                     actual `shouldBe` expected
 
+                it "8|105723 xxx" $ do
+                    let actual = _number "8|105723 xxx"
+                        expected = (
+                                AST_VALUE [
+                                    AST_NODE {_astNodeType = AST_Number, _astValue = Nothing, _astChildren = AST_VALUE [
+                                        AST_NODE {_astNodeType = AST_OctalNumber, _astValue = Just "105723", _astChildren = AST_VALUE []}
+                                    ]}
+                                ]
+                                ," xxx"
+                            )
+                    actual `shouldBe` expected
+
+                it "8|-105723 xxx" $ do
+                    let actual = _number "8|-105723 xxx"
+                        expected = (
+                                AST_VALUE [
+                                    AST_NODE {_astNodeType = AST_Number, _astValue = Nothing, _astChildren = AST_VALUE [
+                                        AST_NODE {_astNodeType = AST_OctalNumber, _astValue = Just "-105723", _astChildren = AST_VALUE []}
+                                    ]}
+                                ]
+                                ," xxx"
+                            )
+                    actual `shouldBe` expected
+
+                it "16|ff0099 xxx" $ do
+                    let actual = _number "16|ff0099 xxx"
+                        expected = (
+                                AST_VALUE [
+                                    AST_NODE {_astNodeType = AST_Number, _astValue = Nothing, _astChildren = AST_VALUE [
+                                        AST_NODE {_astNodeType = AST_HexNumber, _astValue = Just "ff0099", _astChildren = AST_VALUE []}
+                                    ]}
+                                ]
+                                ," xxx"
+                            )
+                    actual `shouldBe` expected
+
+                it "16|-ff0099 xxx" $ do
+                    let actual = _number "16|-ff0099 xxx"
+                        expected = (
+                                AST_VALUE [
+                                    AST_NODE {_astNodeType = AST_Number, _astValue = Nothing, _astChildren = AST_VALUE [
+                                        AST_NODE {_astNodeType = AST_HexNumber, _astValue = Just "-ff0099", _astChildren = AST_VALUE []}
+                                    ]}
+                                ]
+                                ," xxx"
+                            )
+                    actual `shouldBe` expected
+
             describe "_complexNumber" $ do
                 it "1+2i xxx" $ do
                     let actual = _complexNumber "1+2i xxx"
