@@ -283,9 +283,9 @@ module AST2Spec where
                             )
                     actual `shouldBe` expected
 
-            describe "_primitive" $ do
+            describe "primitive" $ do
                 it "13 xxx; 1/3 xxx; 1.3 xxx; 1+3i xxx" $ do
-                    let actual = fmap (snd . _primitive) [
+                    let actual = fmap (snd . primitive) [
                                       "\"text\" xxx"
                                     , "13 xxx"
                                     , "1/3 xxx"
@@ -297,7 +297,7 @@ module AST2Spec where
                     actual `shouldBe` expected
 
                 it "1+3i # a comment\n xxx" $ do
-                    let actual = _primitive "1+3i # a comment\n xxx"
+                    let actual = primitive "1+3i # a comment\n xxx"
                         expected = (
                                 AST_VALUE [
                                     AST_NODE {_astNodeType = AST_ComplexNumber, _astValue = Nothing, _astChildren = AST_VALUE [
@@ -315,7 +315,7 @@ module AST2Spec where
                     actual `shouldBe` expected
 
                 it "1+3i(xxx" $ do
-                    let actual = _primitive "1+3i(xxx"
+                    let actual = primitive "1+3i(xxx"
                         expected = (
                                 AST_VALUE [
                                     AST_NODE {_astNodeType = AST_ComplexNumber, _astValue = Nothing, _astChildren = AST_VALUE [

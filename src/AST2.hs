@@ -7,13 +7,11 @@ module AST2 (
     , AST_NODE_TYPE(..)
     , AST_NODE(..)
     , _string
-    , __keyword
-    , ___naturalNumber
+    , string
     , _number
     , _complexNumber
-    , _primitive
+    , primitive
     , _comment
-    , __symbol
     ) where
 
     import qualified Data.ByteString.Lazy.Char8 as L
@@ -129,32 +127,6 @@ module AST2 (
                      then (singleAstNode AST_String str (AST_VALUE []), rest)
                      else (AST_ERROR [], chars)
         where (str, rest) = ___collectString chars
-
-    __keyword :: L.ByteString -> L.ByteString -> (L.ByteString, L.ByteString)
-    __keyword kw ""    = ("", "")
-    __keyword kw chars = if (kw `L.isPrefixOf` chars) && (fstRest `L.elem` " (){}[]\n,;")
-                         then (kw, justRest)
-                         else ("", chars)
-        where rest = L.stripPrefix kw chars
-              fstRest = if (isJust rest && L.length (fromJust rest) /= 0)
-                        then L.head (fromJust rest)
-                        else ' '
-              justRest = if (isJust rest)
-                        then (fromJust rest)
-                        else ""
-
-    ___keyword :: L.ByteString -> AstFn
-    ___keyword kw ""    = (endOfFileError, "")
-    ___keyword kw chars = if (kw `L.isPrefixOf` chars) && (fstRest `L.elem` " (){}[]\n,;:")
-                         then (AST_VALUE [], justRest)
-                         else (AST_ERROR [], chars)
-        where rest = L.stripPrefix kw chars
-              fstRest = if (isJust rest && L.length (fromJust rest) /= 0)
-                        then L.head (fromJust rest)
-                        else ' '
-              justRest = if (isJust rest)
-                        then (fromJust rest)
-                        else ""
 
     ___signAs :: AST_NODE_TYPE -> Char -> AstFn
     ___signAs t char chars =
@@ -320,14 +292,16 @@ module AST2 (
         else (singleAstNode AST_Space (Just ns) (AST_VALUE []), rest)
         where (ns, rest) = L.break (not . isSpace) chars
 
+    ___ignored = qZeroOrMore (qOr [_spaceEOF, _comment])
+
     token check = qExact [
           check
         , qOr [
               qlookForward xs
-            , (wrappedAs AST_Ignore) . _ignored
+            , (wrappedAs AST_Ignore) . ___ignored
             ]
         ]
-        where _ignored = qZeroOrMore (qOr [_spaceEOF, _comment])
+        where
               xs = qOr [
                           ___dot
                         , ___sharp
@@ -342,19 +316,13 @@ module AST2 (
                         , ___StringStart
                         ]
 
-    _primitive = token $ qOr [
-        _complexNumber
-        , _number
-        , _string
+    string = qExact [
+          _string
+        , (wrappedAs AST_Ignore) . ___ignored
         ]
 
-    __symbol :: L.ByteString -> (L.ByteString, L.ByteString)
-    __symbol ""    = ("", "")
-    __symbol chars =
-        if L.length cs /= 0 && ((L.head chars) `L.notElem` notStart)
-        then (cs, fromJust $ L.stripPrefix cs chars)
-        else ("", chars)
-        where cs = L.takeWhile (`L.notElem` notCs) chars
-              notCs = "()[]{} \n,;:#\"." <> (L.pack ['A'..'Z'])
-              notStart = (L.pack ['0'..'9'])
-
+    primitive = qOr [
+          complexNumber
+        , number
+        , string
+        ]
