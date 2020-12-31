@@ -69,6 +69,7 @@ module AST2.Types (
         |   AST_BinaryNumber   -- 2|010011
         |   AST_OctalNumber    -- 8|010011
         |   AST_HexNumber      -- 16|010011
+        |   AST_PercentNumber  -- 2.5%
 
         | AST_String        -- "text"
         | AST_Open          -- ( { [

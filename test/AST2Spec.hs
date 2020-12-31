@@ -190,6 +190,68 @@ module AST2Spec where
                             )
                     actual `shouldBe` expected
 
+                it "2.5% xxx" $ do
+                    let actual = _number "2.5% xxx"
+                        expected = (
+                                AST_VALUE [
+                                    AST_NODE {_astNodeType = AST_Number, _astValue = Nothing, _astChildren = AST_VALUE [
+                                        AST_NODE {_astNodeType = AST_PercentNumber, _astValue = Nothing, _astChildren = AST_VALUE [
+                                            AST_NODE {_astNodeType = AST_RealNumber, _astValue = Nothing, _astChildren = AST_VALUE [
+                                                AST_NODE {_astNodeType = AST_IntegerNumber, _astValue = Just "2", _astChildren = AST_VALUE []},
+                                                AST_NODE {_astNodeType = AST_NaturalNumber, _astValue = Just "5", _astChildren = AST_VALUE []}
+                                            ]}
+                                        ]}
+                                    ]}
+                                ]
+                                ," xxx"
+                            )
+                    actual `shouldBe` expected
+
+                it "-2.5% xxx" $ do
+                    let actual = _number "-2.5% xxx"
+                        expected = (
+                                AST_VALUE [
+                                    AST_NODE {_astNodeType = AST_Number, _astValue = Nothing, _astChildren = AST_VALUE [
+                                        AST_NODE {_astNodeType = AST_PercentNumber, _astValue = Nothing, _astChildren = AST_VALUE [
+                                            AST_NODE {_astNodeType = AST_RealNumber, _astValue = Nothing, _astChildren = AST_VALUE [
+                                                AST_NODE {_astNodeType = AST_IntegerNumber, _astValue = Just "-2", _astChildren = AST_VALUE []},
+                                                AST_NODE {_astNodeType = AST_NaturalNumber, _astValue = Just "5", _astChildren = AST_VALUE []}
+                                            ]}
+                                        ]}
+                                    ]}
+                                ]
+                                ," xxx"
+                            )
+                    actual `shouldBe` expected
+
+                it "3% xxx" $ do
+                    let actual = _number "3% xxx"
+                        expected = (
+                                AST_VALUE [
+                                    AST_NODE {_astNodeType = AST_Number, _astValue = Nothing, _astChildren = AST_VALUE [
+                                        AST_NODE {_astNodeType = AST_PercentNumber, _astValue = Nothing, _astChildren = AST_VALUE [
+                                            AST_NODE {_astNodeType = AST_IntegerNumber, _astValue = Just "3", _astChildren = AST_VALUE []}
+                                        ]}
+                                    ]}
+                                ]
+                                ," xxx"
+                            )
+                    actual `shouldBe` expected
+
+                it "-3% xxx" $ do
+                    let actual = _number "-3% xxx"
+                        expected = (
+                                AST_VALUE [
+                                    AST_NODE {_astNodeType = AST_Number, _astValue = Nothing, _astChildren = AST_VALUE [
+                                        AST_NODE {_astNodeType = AST_PercentNumber, _astValue = Nothing, _astChildren = AST_VALUE [
+                                            AST_NODE {_astNodeType = AST_IntegerNumber, _astValue = Just "-3", _astChildren = AST_VALUE []}
+                                        ]}
+                                    ]}
+                                ]
+                                ," xxx"
+                            )
+                    actual `shouldBe` expected
+
             describe "_complexNumber" $ do
                 it "1+2i xxx" $ do
                     let actual = _complexNumber "1+2i xxx"

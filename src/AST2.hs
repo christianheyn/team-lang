@@ -16,7 +16,6 @@ module AST2 (
     , __symbol
     ) where
 
-
     import qualified Data.ByteString.Lazy.Char8 as L
     import Data.List (find, null, or, break)
     import Data.Char (isSpace)
@@ -95,6 +94,13 @@ module AST2 (
         if (isAstError ast)
         then (ast, rest)
         else (AST_VALUE [], rest)
+        where (ast, rest) = check chars
+
+    qlookForward :: AstFn -> AstFn
+    qlookForward check chars =
+        if (isAstError ast)
+        then (AST_ERROR [], chars)
+        else (AST_VALUE [], chars)
         where (ast, rest) = check chars
 
     -- END QUANTIFIER =============================================================
@@ -203,13 +209,6 @@ module AST2 (
     ___StringStart :: AstFn
     ___StringStart = ___signAs AST_String '"'
 
-    __lookForward :: AstFn -> AstFn
-    __lookForward check chars =
-        if (isAstError ast)
-        then (AST_ERROR [], chars)
-        else (AST_VALUE [], chars)
-        where (ast, rest) = check chars
-
     -- NUMBERS =============================================================
     ___naturalNumber :: AstFn -- 1, 2, 3 -- TODO: no zero at start
     ___naturalNumber ""    = (endOfFileError, "")
@@ -273,6 +272,11 @@ module AST2 (
                 qOr $ fmap (___signAs AST_NaturalNumber) (['0'..'9'] ++ ['a'..'f'])
             ]
 
+    ___percentNumber = (wrappedAs AST_PercentNumber) . qExact [
+              qOr [___realNumber, ___integerNumber]
+            , qJustAppear $ ___signAs AST_Ignore '%'
+            ]
+
     _complexNumber :: AstFn
     _complexNumber = (wrappedAs AST_ComplexNumber) . qExact [
           qOr [___realNumber, ___integerNumber]
@@ -281,9 +285,13 @@ module AST2 (
         , qJustAppear (___signAs AST_Ignore 'i') -- TODO: knowenError
         ]
 
-    _number :: AstFn
+    _number :: AstFn -- TODO: Improvement with ___stepsFuntion
+                     -- because when a realNumber has an error after the .
+                     -- it is a interger number; or when a percentNumber
+                     -- has no percent sign everything before is a number
     _number = (wrappedAs AST_Number) . qOr [
-          ___realNumber
+          ___percentNumber
+        , ___realNumber
         , ___binaryNumber
         , ___octalNumber
         , ___hexNumber
@@ -292,7 +300,7 @@ module AST2 (
         ]
 
     number = token $ _number
-
+    complexNumber = token $ _complexNumber
 
     -- END NUMBERS =============================================================
 
@@ -315,7 +323,7 @@ module AST2 (
     token check = qExact [
           check
         , qOr [
-              __lookForward xs
+              qlookForward xs
             , (wrappedAs AST_Ignore) . _ignored
             ]
         ]
