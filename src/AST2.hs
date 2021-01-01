@@ -6,11 +6,14 @@ module AST2 (
       AST(..)
     , AST_NODE_TYPE(..)
     , AST_NODE(..)
+    , AstResult(..)
+    , fromAST
     , _string
     , string
     , _number
     , _complexNumber
     , primitive
+    , symbol
     , _comment
     ) where
 
@@ -99,6 +102,13 @@ module AST2 (
         if (isAstError ast)
         then (AST_ERROR [], chars)
         else (AST_VALUE [], chars)
+        where (ast, rest) = check chars
+
+    qNegate :: AstFn -> AstFn
+    qNegate check chars =
+        if (isAstError ast)
+        then (AST_VALUE (fromAST ast), rest)
+        else (AST_ERROR (fromAST ast), rest)
         where (ast, rest) = check chars
 
     -- END QUANTIFIER =============================================================
@@ -275,6 +285,24 @@ module AST2 (
     complexNumber = token $ _complexNumber
 
     -- END NUMBERS =============================================================
+
+    -- SYMBOLS =================================================================
+
+    ___symbol :: AstFn -- abc123
+    ___symbol chars =
+        if L.length chars == 0
+        then (endOfFileError, "")
+        else if wrongStart
+             then unexpected chars
+             else (singleAstNode AST_Symbol (Just xs) (AST_VALUE []), rest)
+        where (xs, rest) = L.break (notAllowed) chars
+              notAllowed c = c `L.elem` (L.pack ("@#(){}[] \n" ++ ['A'..'Z']))
+              wrongStart = (L.head chars) `L.elem` notAllowedStart
+              notAllowedStart = L.pack ("@#(){}[] \n" ++ ['A'..'Z'] ++ ['0'..'9'])
+
+    symbol = token $ ___symbol
+
+    -- END SYMBOLS =============================================================
 
     __commentText :: AstFn
     __commentText chars =

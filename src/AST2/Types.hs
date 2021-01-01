@@ -5,6 +5,7 @@ module AST2.Types (
     , AST_NODE_TYPE(..)
     , AST_NODE(..)
     , AstFn(..)
+    , AstResult(..)
     , isAstValue
     , isAstError
     , isAstKnowenError
@@ -71,6 +72,7 @@ module AST2.Types (
         |   AST_HexNumber      -- 16|010011
         |   AST_PercentNumber  -- 2.5%
 
+        | AST_Symbol
         | AST_String        -- "text"
         | AST_Open          -- ( { [
         | AST_Close         -- ] } )
