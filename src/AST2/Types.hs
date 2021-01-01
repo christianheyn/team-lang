@@ -72,7 +72,8 @@ module AST2.Types (
         |   AST_HexNumber      -- 16|010011
         |   AST_PercentNumber  -- 2.5%
 
-        | AST_Symbol
+        | AST_Symbol        -- variable-name
+        | AST_TypeSymbol    -- T
         | AST_String        -- "text"
         | AST_Open          -- ( { [
         | AST_Close         -- ] } )

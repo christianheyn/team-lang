@@ -58,3 +58,28 @@ module AST2.SymbolSpec where
                     expected = (AST_Symbol, "number-complex", "(xxx")
                 actual `shouldBe` expected
 
+            it "-> T" $ do
+                let actual = testResult $ symbol "-> T"
+                    expected = (AST_Symbol, "->", "T")
+                actual `shouldBe` expected
+
+        describe "typeSymbol" $ do
+            it "Hello xxx" $ do
+                let actual = testResult $ typeSymbol "Hello xxx"
+                    expected = (AST_TypeSymbol, "Hello", "xxx")
+                actual `shouldBe` expected
+
+            it "NUMBER xxx" $ do
+                let actual = testResult $ typeSymbol "NUMBER xxx"
+                    expected = (AST_TypeSymbol, "NUMBER", "xxx")
+                actual `shouldBe` expected
+
+            it "T ->" $ do
+                let actual = testResult $ typeSymbol "T ->"
+                    expected = (AST_TypeSymbol, "T", "->")
+                actual `shouldBe` expected
+
+            it "T->" $ do
+                let actual = testResult $ typeSymbol "T->"
+                    expected = (AST_TypeSymbol, "T", "->")
+                actual `shouldBe` expected

@@ -14,6 +14,7 @@ module AST2 (
     , _complexNumber
     , primitive
     , symbol
+    , typeSymbol
     , _comment
     ) where
 
@@ -301,6 +302,20 @@ module AST2 (
               notAllowedStart = L.pack ("@#(){}[] \n" ++ ['A'..'Z'] ++ ['0'..'9'])
 
     symbol = token $ ___symbol
+
+    ___typeSymbol :: AstFn -- abc123
+    ___typeSymbol chars =
+        if L.length chars == 0
+        then (endOfFileError, "")
+        else if L.head chars `L.notElem` (L.pack ['A'..'Z'])
+             then unexpected chars
+             else (singleAstNode AST_TypeSymbol (Just xs) (AST_VALUE []), rest)
+        where (xs, rest) = L.break (notAllowed) chars
+              notAllowed c = c `L.notElem` allowedBody
+              allowedBody = (L.pack (['A'..'Z'] ++ ['a'..'z'] ++ ['0'..'9'] ++ ['_']))
+              -- TODO:
+
+    typeSymbol = qExact [ ___typeSymbol, (wrappedAs AST_Ignore) . ___ignored]
 
     -- END SYMBOLS =============================================================
 
