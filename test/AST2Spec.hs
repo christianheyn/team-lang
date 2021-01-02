@@ -303,11 +303,6 @@ module AST2Spec where
                                     AST_NODE {_astNodeType = AST_ComplexNumber, _astValue = Nothing, _astChildren = AST_VALUE [
                                         AST_NODE {_astNodeType = AST_IntegerNumber, _astValue = Just "1", _astChildren = AST_VALUE []},
                                         AST_NODE {_astNodeType = AST_IntegerNumber, _astValue = Just "3", _astChildren = AST_VALUE []}
-                                    ]},
-                                    AST_NODE {_astNodeType = AST_Ignore, _astValue = Nothing, _astChildren = AST_VALUE [
-                                        AST_NODE {_astNodeType = AST_Space, _astValue = Just " ", _astChildren = AST_VALUE []},
-                                        AST_NODE {_astNodeType = AST_Comment, _astValue = Just "# a comment", _astChildren = AST_VALUE []},
-                                        AST_NODE {_astNodeType = AST_Space, _astValue = Just "\n ", _astChildren = AST_VALUE []}
                                     ]}
                                 ]
                                 ,"xxx"

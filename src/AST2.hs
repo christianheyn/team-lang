@@ -14,9 +14,13 @@ module AST2 (
     , _complexNumber
     , primitive
     , symbol
+    , allSymbols
     , typeSymbol
+    , allTypeSymbols
     , _comment
     , functionDef
+    , lambda
+    , functionCall
     ) where
 
     import qualified Data.ByteString.Lazy.Char8 as L
@@ -195,22 +199,22 @@ module AST2 (
 
     withRoundGroup check = qExact ([
               qJustAppear ___openRound
-            , ___ignored
+            , ignored
             ]
             ++ [check]
             ++ [
-              ___ignored
+              ignored
             , qJustAppear ___closeRound
             ])
 
 
     withCurlyGroup check = qExact ([
               qJustAppear ___openCurly
-            , ___ignored
+            , ignored
             ]
             ++ [check]
             ++ [
-              ___ignored
+              ignored
             , qJustAppear ___closeCurly
             ])
 
@@ -319,11 +323,15 @@ module AST2 (
              then unexpected chars
              else (singleAstNode AST_Symbol (Just xs) (AST_VALUE []), rest)
         where (xs, rest) = L.break (notAllowed) chars
-              notAllowed c = c `L.elem` (L.pack ("@#(){}[] \n" ++ ['A'..'Z']))
+              notAllowed c = c `L.elem` (L.pack ("@#(){}[]\" \n." ++ ['A'..'Z']))
               wrongStart = (L.head chars) `L.elem` notAllowedStart
-              notAllowedStart = L.pack ("@#(){}[] \n" ++ ['A'..'Z'] ++ ['0'..'9'])
+              notAllowedStart = L.pack ("@#(){}[]\" \n." ++ ['A'..'Z'] ++ ['0'..'9'])
 
     symbol = token $ ___symbol
+    importedSymbol = token
+        $ (wrappedAs AST_ImportedSymbol)
+            . qExact [___symbol, qJustAppear ___dot, ___symbol]
+    allSymbols = qOr [importedSymbol, symbol]
 
     ___typeSymbol :: AstFn -- abc123
     ___typeSymbol chars =
@@ -335,9 +343,12 @@ module AST2 (
         where (xs, rest) = L.break (notAllowed) chars
               notAllowed c = c `L.notElem` allowedBody
               allowedBody = (L.pack (['A'..'Z'] ++ ['a'..'z'] ++ ['0'..'9'] ++ ['_']))
-              -- TODO:
 
-    typeSymbol = qExact [ ___typeSymbol, (wrappedAs AST_Ignore) . ___ignored]
+    typeSymbol = token $ ___typeSymbol
+    importedTypeSymbol = token
+        $ (wrappedAs AST_ImportedTypeSymbol)
+            . qExact [___symbol, qJustAppear ___dot, ___typeSymbol]
+    allTypeSymbols = qOr [importedTypeSymbol, typeSymbol]
 
     -- END SYMBOLS =============================================================
 
@@ -357,7 +368,8 @@ module AST2 (
         else (singleAstNode AST_Space (Just ns) (AST_VALUE []), rest)
         where (ns, rest) = L.break (not . isSpace) chars
 
-    ___ignored = qZeroOrMore (qOr [_spaceEOF, _comment])
+    ignored = qJustAppear $ qZeroOrMore (qOr [_spaceEOF, _comment])
+    coma = qExact [qJustAppear $ qOptional ___Coma, ignored]
 
     -- FUNCTION ===============================================================
 
@@ -365,18 +377,18 @@ module AST2 (
     ___functionParameterList =
         (wrappedAs AST_FunctionParameterList) . qExact [
               qJustAppear ___openRound
-            , ___ignored
-            , qZeroOrMore $ qExact [symbol, qJustAppear $ qOptional ___Coma]
-            , ___ignored
+            , ignored
+            , qZeroOrMore $ qExact [symbol, coma]
+            , ignored
             , qJustAppear ___closeRound
             ]
 
     ___functionBody :: AstFn
     ___functionBody = (wrappedAs AST_FunctionBody) . qOr [
                             primitive
-                          , symbol
-                          -- TODO: , functionCall
-                          -- TODO: , lambda
+                          , allSymbols
+                          , functionCall
+                          , lambda
                           -- TODO: , switch
                           -- TODO: , ifThenElse
                           ]
@@ -387,16 +399,52 @@ module AST2 (
             (wrappedAs AST_Function)
             . withCurlyGroup (qExact [
               symbol
-            -- TODO: , typing
-            , token $ ___functionParameterList
-            , token $ ___functionBody
+            , ignored
+            -- TODO: , qOptional typing
+            , ___functionParameterList
+            , ignored
+            , ___functionBody
+            , ignored
+            -- TODO: , qOptional catch
+            -- TODO: , ignored
             ])
+
+    lambda :: AstFn
+    lambda =
+        token $
+            (wrappedAs AST_Lambda)
+            . withCurlyGroup (qExact [
+            -- TODO: , qOptional typing
+              ___functionParameterList
+            , ignored
+            , ___functionBody
+            , ignored
+            -- TODO: , qOptional catch
+            ])
+
+    -- FUNCTIONCALL ===============================================================
+
+    functionCall :: AstFn
+    functionCall = token $
+            (wrappedAs AST_FunctionCall)
+            . withRoundGroup (qExact [
+                symbol
+              , coma
+              , qZeroOrMore $ qExact [x, coma]
+            ])
+        where x = qOr [
+                      primitive
+                    , allSymbols
+                    , lambda
+                    , functionCall
+                    ]
+
 
     token check = qExact [
           check
         , qOr [
               qlookForward xs
-            , (wrappedAs AST_Ignore) . ___ignored
+            , ignored
             ]
         ]
         where
@@ -416,11 +464,17 @@ module AST2 (
 
     string = qExact [
           _string
-        , (wrappedAs AST_Ignore) . ___ignored
+        , ignored
         ]
 
     primitive = qOr [
           complexNumber
         , number
         , string
+        -- , char
+        -- , true
+        -- , false
+        -- , pi
+        -- , e
         ]
+

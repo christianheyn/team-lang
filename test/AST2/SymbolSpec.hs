@@ -63,6 +63,20 @@ module AST2.SymbolSpec where
                     expected = (AST_Symbol, "->", "T")
                 actual `shouldBe` expected
 
+        describe "allSymbols" $ do
+            it "lib.fn xxx" $ do
+                let actual = allSymbols "lib.fn xxx"
+                    expected =  (
+                            AST_VALUE [
+                                AST_NODE {_astNodeType = AST_ImportedSymbol, _astValue = Nothing, _astChildren = AST_VALUE [
+                                    AST_NODE {_astNodeType = AST_Symbol, _astValue = Just "lib", _astChildren = AST_VALUE []},
+                                    AST_NODE {_astNodeType = AST_Symbol, _astValue = Just "fn", _astChildren = AST_VALUE []}
+                                ]}
+                            ]
+                            ,"xxx"
+                        )
+                actual `shouldBe` expected
+
         describe "typeSymbol" $ do
             it "Hello xxx" $ do
                 let actual = testResult $ typeSymbol "Hello xxx"
@@ -82,4 +96,18 @@ module AST2.SymbolSpec where
             it "T->" $ do
                 let actual = testResult $ typeSymbol "T->"
                     expected = (AST_TypeSymbol, "T", "->")
+                actual `shouldBe` expected
+
+        describe "allTypeSymbols" $ do
+            it "lib.TYPE xxx" $ do
+                let actual = allTypeSymbols "lib.TYPE xxx"
+                    expected = (
+                            AST_VALUE [
+                                AST_NODE {_astNodeType = AST_ImportedTypeSymbol, _astValue = Nothing, _astChildren = AST_VALUE [
+                                    AST_NODE {_astNodeType = AST_Symbol, _astValue = Just "lib", _astChildren = AST_VALUE []},
+                                    AST_NODE {_astNodeType = AST_TypeSymbol, _astValue = Just "TYPE", _astChildren = AST_VALUE []}
+                                ]}
+                            ]
+                            ,"xxx"
+                        )
                 actual `shouldBe` expected
