@@ -16,6 +16,7 @@ module AST2 (
     , symbol
     , typeSymbol
     , _comment
+    , functionDef
     ) where
 
     import qualified Data.ByteString.Lazy.Char8 as L
@@ -192,6 +193,27 @@ module AST2 (
     ___StringStart :: AstFn
     ___StringStart = ___signAs AST_String '"'
 
+    withRoundGroup check = qExact ([
+              qJustAppear ___openRound
+            , ___ignored
+            ]
+            ++ [check]
+            ++ [
+              ___ignored
+            , qJustAppear ___closeRound
+            ])
+
+
+    withCurlyGroup check = qExact ([
+              qJustAppear ___openCurly
+            , ___ignored
+            ]
+            ++ [check]
+            ++ [
+              ___ignored
+            , qJustAppear ___closeCurly
+            ])
+
     -- NUMBERS =============================================================
     ___naturalNumber :: AstFn -- 1, 2, 3 -- TODO: no zero at start
     ___naturalNumber ""    = (endOfFileError, "")
@@ -336,6 +358,39 @@ module AST2 (
         where (ns, rest) = L.break (not . isSpace) chars
 
     ___ignored = qZeroOrMore (qOr [_spaceEOF, _comment])
+
+    -- FUNCTION ===============================================================
+
+    ___functionParameterList :: AstFn
+    ___functionParameterList =
+        (wrappedAs AST_FunctionParameterList) . qExact [
+              qJustAppear ___openRound
+            , ___ignored
+            , qZeroOrMore $ qExact [symbol, qJustAppear $ qOptional ___Coma]
+            , ___ignored
+            , qJustAppear ___closeRound
+            ]
+
+    ___functionBody :: AstFn
+    ___functionBody = (wrappedAs AST_FunctionBody) . qOr [
+                            primitive
+                          , symbol
+                          -- TODO: , functionCall
+                          -- TODO: , lambda
+                          -- TODO: , switch
+                          -- TODO: , ifThenElse
+                          ]
+
+    functionDef :: AstFn
+    functionDef =
+        token $
+            (wrappedAs AST_Function)
+            . withCurlyGroup (qExact [
+              symbol
+            -- TODO: , typing
+            , token $ ___functionParameterList
+            , token $ ___functionBody
+            ])
 
     token check = qExact [
           check

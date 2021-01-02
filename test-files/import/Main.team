@@ -31,3 +31,12 @@ either Number String Boolean
 class LIST = Functor Show Eq
 
 class Functor <T> = {fmap <U> {T -> U} -> T -> U}
+
+{add2 (x) (+ 2 ?)}
+
+var html = xml 
+	<div key="value" key2={(getValue)}>
+		{(getItem)}
+	</div>
+
+var htmlString = (show html)

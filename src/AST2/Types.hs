@@ -82,6 +82,12 @@ module AST2.Types (
         | AST_Coma          -- ,
         | AST_Semicolon     -- ;
         | AST_Space
+
+        | AST_Function
+        |   AST_FunctionParameterList
+        |   AST_FunctionBody
+
+
         | AST_Syntax_Error
         | AST_Ignore
         | AST_Combination
