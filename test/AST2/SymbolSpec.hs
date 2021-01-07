@@ -111,3 +111,26 @@ module AST2.SymbolSpec where
                             ,"xxx"
                         )
                 actual `shouldBe` expected
+
+            it "( lib.TYPE ) xxx" $ do
+                let actual = allTypeSymbols "( lib.TYPE ) xxx"
+                    expected = (
+                            AST_VALUE [
+                                AST_NODE {_astNodeType = AST_ImportedTypeSymbol, _astValue = Nothing, _astChildren = AST_VALUE [
+                                    AST_NODE {_astNodeType = AST_Symbol, _astValue = Just "lib", _astChildren = AST_VALUE []},
+                                    AST_NODE {_astNodeType = AST_TypeSymbol, _astValue = Just "TYPE", _astChildren = AST_VALUE []}
+                                ]}
+                            ]
+                            ,"xxx"
+                        )
+                actual `shouldBe` expected
+
+            it "(TYPE) xxx" $ do
+                let actual = allTypeSymbols "(TYPE) xxx"
+                    expected = (
+                            AST_VALUE [
+                                AST_NODE {_astNodeType = AST_TypeSymbol, _astValue = Just "TYPE", _astChildren = AST_VALUE []}
+                            ]
+                            ,"xxx"
+                        )
+                actual `shouldBe` expected

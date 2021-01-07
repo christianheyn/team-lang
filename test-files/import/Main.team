@@ -19,7 +19,9 @@ instance Functor T {
 project {team-lang @Strings -> Void (@args) (
     let var argLen = (length args)
         var arg1   = (head args)
-
+        fun a (x) (+ x 1)
+        type A = B String Number
+        type Tuple <T1> <T2> <T3> = Pair T1 T2 | Triple T1 T2 T3
         if (?and (not ?equals argLen 0) (?equals arg1 "execute") )
             then (run)
             else (askForTask)
@@ -35,8 +37,16 @@ class Functor <T> = {fmap <U> {T -> U} -> T -> U}
 {add2 (x) (+ 2 ?)}
 
 var html = xml 
-	<div key="value" key2={(getValue)}>
-		{(getItem)}
-	</div>
+    <div key="value" key2={(getValue)}>
+        {(getItem)}
+    </div>
 
 var htmlString = (show html)
+isJust :: Maybe <T> -> Bool
+
+{isJust (m) 
+    (switch m
+        void then false
+        otherwise true)
+
+    catch {(x) do (print x) x}}

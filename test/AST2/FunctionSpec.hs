@@ -10,9 +10,27 @@ module AST2.FunctionSpec where
     spec :: Spec
     spec = do
         describe "AST2 functions" $ do
-            describe "functionDef" $ do
+            describe "function" $ do
+                it "fun f () 3 xxx" $ do
+                    let actual = function "fun f () 3 xxx"
+                        expected = (
+                                AST_VALUE [
+                                    AST_NODE {_astNodeType = AST_Function, _astValue = Nothing, _astChildren = AST_VALUE [
+                                        AST_NODE {_astNodeType = AST_Symbol, _astValue = Just "f", _astChildren = AST_VALUE []},
+                                        AST_NODE {_astNodeType = AST_FunctionParameterList, _astValue = Nothing, _astChildren = AST_VALUE []},
+                                        AST_NODE {_astNodeType = AST_FunctionBody, _astValue = Nothing, _astChildren = AST_VALUE [
+                                            AST_NODE {_astNodeType = AST_Number, _astValue = Nothing, _astChildren = AST_VALUE [
+                                                AST_NODE {_astNodeType = AST_IntegerNumber, _astValue = Just "3", _astChildren = AST_VALUE []}
+                                            ]}
+                                        ]}
+                                    ]}
+                                ]
+                                ,"xxx"
+                            )
+                    actual `shouldBe` expected
+
                 it "{f () 3} xxx" $ do
-                    let actual = functionDef "{f () 3} xxx"
+                    let actual = function "{f () 3} xxx"
                         expected = (
                                 AST_VALUE [
                                     AST_NODE {_astNodeType = AST_Function, _astValue = Nothing, _astChildren = AST_VALUE [
@@ -30,7 +48,7 @@ module AST2.FunctionSpec where
                     actual `shouldBe` expected
 
                 it "{f (a b +) 3} xxx" $ do
-                    let actual = functionDef "{f (a b +) 3} xxx"
+                    let actual = function "{f (a b +) 3} xxx"
                         expected = (
                                 AST_VALUE [
                                     AST_NODE {_astNodeType = AST_Function, _astValue = Nothing, _astChildren = AST_VALUE [
@@ -52,7 +70,7 @@ module AST2.FunctionSpec where
                     actual `shouldBe` expected
 
                 it "{f (a, b) 3} xxx" $ do
-                    let actual = functionDef "{f (a, b) 3} xxx"
+                    let actual = function "{f (a, b) 3} xxx"
                         expected = (
                                 AST_VALUE [
                                     AST_NODE {_astNodeType = AST_Function, _astValue = Nothing, _astChildren = AST_VALUE [

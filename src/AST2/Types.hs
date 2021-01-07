@@ -24,6 +24,7 @@ module AST2.Types (
         | AST_KNOWEN_ERROR a
         deriving (Show, Eq)
 
+    isAstValue :: AST a -> Bool
     isAstValue (AST_VALUE _) = True
     isAstValue _             = False
 
@@ -72,10 +73,15 @@ module AST2.Types (
         |   AST_HexNumber      -- 16|010011
         |   AST_PercentNumber  -- 2.5%
 
-        | AST_Symbol             -- variable-name
-        | AST_ImportedSymbol     -- lib.fn
-        | AST_TypeSymbol         -- T
-        | AST_ImportedTypeSymbol -- lib.T
+        | AST_Symbol         -- variable-name
+        | AST_ImportedSymbol -- lib.fn
+
+        | AST_TypeSymbol             -- T
+            | AST_ImportedTypeSymbol -- lib.T
+            | AST_TemplateType       -- <T>
+            | AST_RestType           -- @T , @[Number]
+            | AST_MaybeType          -- maybe Number
+
         | AST_String             -- "text"
         | AST_Open               -- ( { [
         | AST_Close              -- ] } )
@@ -90,7 +96,6 @@ module AST2.Types (
         |   AST_FunctionParameterList
         |   AST_FunctionBody
         |   AST_FunctionCall
-
 
         | AST_Syntax_Error
         | AST_Ignore

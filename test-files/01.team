@@ -130,6 +130,10 @@ type UserJSON {
     "info" { "msg" String }
     }
 
+fun add1
+    Number -> Number
+    (x) (+ x 1)
+
 type Lens = <T> <U> lens { T -> U }
 
 (let
@@ -142,6 +146,8 @@ type Lens = <T> <U> lens { T -> U }
     var f Number -> String = (<<< f3 f2 f1)
     var f Number -> String = (>>> f1 f2 f3)
     var userMsg Lens = (lens "info" "msg")
+    fun f Void -> Bool () true
+        catch (e) (print e)
     enum E = :e :f :g
     var x E = E:e
     type A = [a: Number, b: String]
