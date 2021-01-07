@@ -29,6 +29,7 @@ module AST2 (
     , ___templateType
     , ___restType
     , ___maybeType
+    , ___eitherType
 
 
     , _comment
@@ -444,13 +445,32 @@ module AST2 (
                         (qExact [keywordMaybe, ignored, all])
         where all = qOr [
                       ___maybeType
+                    , ___eitherType
                     --TODO: , ___functionTypeDef
                     --TODO: , ___listType
                     --TODO: , ___propListType
-                    --TODO: , ___eitherType
-                    --TODO: , ___tupleType
                     , allTypeSymbols
                     ]
+
+    ___eitherType = (wrappedAs AST_EitherType)
+                    . withOptionalRoundGroup
+                        (qExact [
+                              keywordEither
+                            , ignored
+                            , all
+                            , ignored
+                            , all
+                            , ignored
+                            , qZeroOrMore all
+                            , ignored ])
+        where all = qOr [
+                      ___maybeType
+                    --TODO: , ___functionTypeDef
+                    --TODO: , ___listType
+                    --TODO: , ___propListType
+                    , allTypeSymbols
+                    ]
+
 
     ___allTypes :: AstFn
     ___allTypes = qOr [

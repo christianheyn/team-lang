@@ -81,6 +81,7 @@ module AST2.Types (
             | AST_TemplateType       -- <T>
             | AST_RestType           -- @T , @[Number]
             | AST_MaybeType          -- maybe Number
+            | AST_EitherType         -- either Number String (T U)
 
         | AST_String             -- "text"
         | AST_Open               -- ( { [
