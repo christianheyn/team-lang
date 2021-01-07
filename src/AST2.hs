@@ -30,7 +30,7 @@ module AST2 (
     , ___restType
     , ___maybeType
     , ___eitherType
-
+    , ___wrapType
 
     , _comment
     , funCurly
@@ -450,6 +450,7 @@ module AST2 (
                     --TODO: , ___listType
                     --TODO: , ___propListType
                     , allTypeSymbols
+                    , ___wrapType
                     ]
 
     ___eitherType = (wrappedAs AST_EitherType)
@@ -469,6 +470,26 @@ module AST2 (
                     --TODO: , ___listType
                     --TODO: , ___propListType
                     , allTypeSymbols
+                    , ___wrapType
+                    ]
+
+    ___wrapType = (wrappedAs AST_WrapType)
+                    . withOptionalRoundGroup
+                        (qExact [
+                              allTypeSymbols
+                            , ignored
+                            , all
+                            , ignored
+                            , qZeroOrMore all
+                            , ignored ])
+        where all = qOr [
+                      ___maybeType
+                    , ___eitherType
+                    , allTypeSymbols
+                    , ___wrapType
+                    --TODO: , ___functionTypeDef
+                    --TODO: , ___listType
+                    --TODO: , ___propListType
                     ]
 
 

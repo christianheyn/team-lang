@@ -96,3 +96,33 @@ module AST2.MaybeTypeSpec where
                         )
 
                 actual `shouldBe` expected
+
+            it "maybe A B C xxx" $ do
+                let actual = ___maybeType "maybe A B C xxx"
+                    expected = (
+                            AST_VALUE [
+                                AST_NODE {_astNodeType = AST_MaybeType, _astValue = Nothing, _astChildren = AST_VALUE [
+                                    AST_NODE {_astNodeType = AST_TypeSymbol, _astValue = Just "A", _astChildren = AST_VALUE []}
+                                ]}
+                            ]
+                            ,"B C xxx"
+                        )
+
+                actual `shouldBe` expected
+
+            it "maybe (A B C) xxx" $ do
+                let actual = ___maybeType "maybe (A B C) xxx"
+                    expected = (
+                            AST_VALUE [
+                                AST_NODE {_astNodeType = AST_MaybeType, _astValue = Nothing, _astChildren = AST_VALUE [
+                                    AST_NODE {_astNodeType = AST_WrapType, _astValue = Nothing, _astChildren = AST_VALUE [
+                                        AST_NODE {_astNodeType = AST_TypeSymbol, _astValue = Just "A", _astChildren = AST_VALUE []},
+                                        AST_NODE {_astNodeType = AST_TypeSymbol, _astValue = Just "B", _astChildren = AST_VALUE []},
+                                        AST_NODE {_astNodeType = AST_TypeSymbol, _astValue = Just "C", _astChildren = AST_VALUE []}
+                                    ]}
+                                ]}
+                            ]
+                            ,"xxx"
+                        )
+
+                actual `shouldBe` expected
