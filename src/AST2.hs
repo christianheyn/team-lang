@@ -20,6 +20,7 @@ module AST2 (
     , keywordIf
     , keywordThen
     , keywordElse
+    , keywordWhen
     , keywordMaybe
     , keywordEither
 
@@ -31,6 +32,7 @@ module AST2 (
     , ___maybeType
     , ___eitherType
     , ___wrapType
+    , ___functionType
 
     , _comment
     , funCurly
@@ -383,6 +385,7 @@ module AST2 (
     keywordIf         = ___keyword "if"
     keywordThen       = ___keyword "then"
     keywordElse       = ___keyword "else"
+    keywordWhen       = ___keyword "when"
     keywordSwitch     = ___keyword "switch"
     keywordOtherwise  = ___keyword "otherwise"
     keywordMaybe      = ___keyword "maybe"
@@ -487,23 +490,93 @@ module AST2 (
                     , ___eitherType
                     , allTypeSymbols
                     , ___wrapType
-                    --TODO: , ___functionTypeDef
+                    , ___functionType
                     --TODO: , ___listType
                     --TODO: , ___propListType
                     ]
-
-
-    ___allTypes :: AstFn
-    ___allTypes = qOr [
-        allTypeSymbols
-        ]
 
     ___restType :: AstFn
     ___restType = (wrappedAs AST_RestType) . qExact [
           qJustAppear ___At
         , ignored
-        , ___allTypes
+        , all
         ]
+        where all = qOr [
+                  ___maybeType
+                , ___eitherType
+                --TODO: , ___functionTypeDef
+                --TODO: , ___listType
+                --TODO: , ___propListType
+                , ___wrapType
+                , allTypeSymbols
+                , ___functionType
+                ]
+
+    ___arrow :: AstFn -- T -> @U -> U, @T -> T
+    ___arrow = qOr [
+                qExact [
+                  ___restType
+                , ignored
+                , keywordArrowLeft
+                , ignored
+                , allTypes
+                , ignored
+                ],
+                qExact [
+                    qZeroOrMore $ qExact [
+                      allTypes
+                    , ignored
+                    , keywordArrowLeft
+                    ]
+                    , qOr [
+                        qExact [
+                          ___restType
+                        , ignored
+                        , keywordArrowLeft
+                        , ignored
+                        , allTypes
+                        , ignored
+                        ]
+                        , allTypes
+                    ]
+                    , ignored
+                ]
+            ]
+        where allTypes = qOr [
+                              ___maybeType
+                            , ___eitherType
+                            --TODO: , ___functionTypeDef
+                            --TODO: , ___listType
+                            --TODO: , ___propListType
+                            , ___wrapType
+                            , allTypeSymbols
+                            , ___functionType
+                            ]
+
+
+    ___functionType :: AstFn -- {T -> {T -> U} -> U}
+    ___functionType = (wrappedAs AST_FunctionType) . withCurlyGroup ___arrow
+
+    -- isTypeDefinition :: AstFn
+    -- isTypeDefinition tokens =
+    --     if hasError
+    --     then (nodes, [])
+    --     else ([astResult], restTokens)
+    --     where (nodes, restTokens) = qExact [
+    --                                       qZeroOrMore [isTemplateType]
+    --                                     , isArrowTypes
+    --                                     ] tokens
+    --           hasError = hasAstError nodes
+    --           astResult = createAstNode AstTypeDefinition [] nodes
+
+    -- isTypeDefinitionWithoutTemplates :: AstFn
+    -- isTypeDefinitionWithoutTemplates tokens =
+    --     if hasError
+    --     then (nodes, [])
+    --     else ([astResult], restTokens)
+    --     where (nodes, restTokens) = isArrowTypes tokens
+    --           hasError = hasAstError nodes
+    --           astResult = createAstNode AstTypeDefinition [] nodes
 
     -- END TYPING ============================================================
 
@@ -545,6 +618,7 @@ module AST2 (
                           , lambda
                           -- TODO: , switch
                           -- TODO: , ifThenElse
+                          -- TODO: , whenThen
                           , allSymbols
                           ]
 
@@ -575,6 +649,10 @@ module AST2 (
             -- TODO: , qOptional catch
             -- TODO: , ignored
             ])
+
+    c :: Char
+    c = '3'
+
 
     fun :: AstFn
     fun =
@@ -648,4 +726,3 @@ module AST2 (
         -- , pi
         -- , e
         ]
-
