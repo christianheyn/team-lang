@@ -14,6 +14,7 @@ module AST2 (
 
     , _string
     , string
+    , ___char
     , _number
     , _complexNumber
     , primitive
@@ -52,7 +53,7 @@ module AST2 (
 
     import qualified Data.ByteString.Lazy.Char8 as L
     import Data.List (find, null, or, break)
-    import Data.Char (isSpace)
+    import Data.Char (isSpace, isLatin1)
     import Data.Maybe (isJust, fromJust)
     import AST2.Types
 
@@ -137,13 +138,6 @@ module AST2 (
         else (AST_VALUE [], chars)
         where (ast, rest) = check chars
 
-    qNegate :: AstFn -> AstFn
-    qNegate check chars =
-        if (isAstError ast)
-        then (AST_VALUE (fromAST ast), rest)
-        else (AST_ERROR (fromAST ast), rest)
-        where (ast, rest) = check chars
-
     -- END QUANTIFIER =============================================================
 
     ___collectString :: L.ByteString -> (Maybe L.ByteString, L.ByteString)
@@ -170,6 +164,22 @@ module AST2 (
                      then (singleAstNode AST_String str (AST_VALUE []), rest)
                      else (AST_ERROR [], chars)
         where (str, rest) = ___collectString chars
+
+    ___char :: AstFn
+    ___char = token $ (combinedAs AST_Char) . qOr [
+            -- TODO: Steuerzeichen hinzufügen
+            qExact [
+              qJustAppear $ ___signAs AST_Ignore '\''
+            , isLatin
+            , qJustAppear $ ___signAs AST_Ignore '\''
+            ]
+        ]
+        where isLatin ""    = (AST_ERROR [], "")
+              isLatin chars =
+                if (isLatin1 c)
+                then (singleAstNode AST_Char (Just (L.pack (c:[]))) (AST_VALUE []), L.tail chars)
+                else unexpected chars
+                where c = L.head chars
 
     ___signAs :: AST_NODE_TYPE -> Char -> AstFn
     ___signAs t char chars =
@@ -710,7 +720,7 @@ module AST2 (
           complexNumber
         , number
         , string
-        -- , char
+        , ___char
         -- , true
         -- , false
         -- , pi
@@ -728,13 +738,12 @@ module AST2 (
             , lambda
             ]
         , ignored
-        , _eof
         ]
 
     toAst :: L.ByteString -> AST [AST_NODE]
     toAst chars =
-        if rest == "~\n"
+        if rest == "~"
         then ast
         else (fst . unexpected) rest
         where (ast, rest) = topLevel (chars <> fakeEnd)
-              fakeEnd = "\n~\n"
+              fakeEnd = "\n~"

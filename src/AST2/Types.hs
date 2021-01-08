@@ -87,6 +87,7 @@ module AST2.Types (
             | AST_TypeDefinition     -- <T> <U> {T -> U} [T] -> [U]
 
         | AST_String             -- "text"
+        | AST_Char               -- 'c'
         | AST_Open               -- ( { [
         | AST_Close              -- ] } )
         | AST_At                 -- @
