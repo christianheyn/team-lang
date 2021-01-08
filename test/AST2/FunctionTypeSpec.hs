@@ -79,3 +79,41 @@ module AST2.FunctionTypeSpec where
                             ," xxx"
                         )
                 actual `shouldBe` expected
+
+            it "<A><B> A -> B xxx" $ do
+                let actual = typeDefinition "<A><B> A -> B xxx"
+                    expected = (
+                            AST_VALUE [
+                                AST_NODE {_astNodeType = AST_TypeDefinition, _astValue = Nothing, _astChildren = AST_VALUE [
+                                    AST_NODE {_astNodeType = AST_TemplateType, _astValue = Nothing, _astChildren = AST_VALUE [
+                                        AST_NODE {_astNodeType = AST_TypeSymbol, _astValue = Just "A", _astChildren = AST_VALUE []}
+                                    ]},
+                                    AST_NODE {_astNodeType = AST_TemplateType, _astValue = Nothing, _astChildren = AST_VALUE [
+                                        AST_NODE {_astNodeType = AST_TypeSymbol, _astValue = Just "B", _astChildren = AST_VALUE []}
+                                    ]},
+                                    AST_NODE {_astNodeType = AST_TypeSymbol, _astValue = Just "A", _astChildren = AST_VALUE []},
+                                    AST_NODE {_astNodeType = AST_TypeSymbol, _astValue = Just "B", _astChildren = AST_VALUE []}
+                                ]}
+                            ]
+                            ,"xxx"
+                        )
+                actual `shouldBe` expected
+
+            it "<A><B> A -> B (xxx)" $ do
+                let actual = typeDefinition "<A><B> A -> B (xxx)"
+                    expected = (
+                            AST_VALUE [
+                                AST_NODE {_astNodeType = AST_TypeDefinition, _astValue = Nothing, _astChildren = AST_VALUE [
+                                    AST_NODE {_astNodeType = AST_TemplateType, _astValue = Nothing, _astChildren = AST_VALUE [
+                                        AST_NODE {_astNodeType = AST_TypeSymbol, _astValue = Just "A", _astChildren = AST_VALUE []}
+                                    ]},
+                                    AST_NODE {_astNodeType = AST_TemplateType, _astValue = Nothing, _astChildren = AST_VALUE [
+                                        AST_NODE {_astNodeType = AST_TypeSymbol, _astValue = Just "B", _astChildren = AST_VALUE []}
+                                    ]},
+                                    AST_NODE {_astNodeType = AST_TypeSymbol, _astValue = Just "A", _astChildren = AST_VALUE []},
+                                    AST_NODE {_astNodeType = AST_TypeSymbol, _astValue = Just "B", _astChildren = AST_VALUE []}
+                                ]}
+                            ]
+                            ,"(xxx)"
+                        )
+                actual `shouldBe` expected

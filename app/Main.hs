@@ -7,8 +7,7 @@ module Main where
     import System.Environment
     import System.Directory
     import qualified Data.ByteString.Lazy.Char8 as L
-    import Tokenizer
-    import Syntax
+    import AST2
 
     noColor = "\x1b[0m"
     underline = "\x1b[4m"
@@ -24,13 +23,12 @@ module Main where
     fileAst = do
         (filepath:_) <- getArgs
         cwd <- getCurrentDirectory
-        x <- L.readFile $ cwd ++ "/" ++ filepath
-        let tokens = generateTokens x
-        print (last tokens)
-        let ast = isTopLevel tokens
-            valid = if length (snd ast) /= 0
+        fileContent <- L.readFile $ cwd ++ "/" ++ filepath
+        let ast = toAst fileContent
+            valid = if isAstError ast || isAstKnowenError ast
                     then red ++ "--- Error ---" ++ noColor
                     else green ++ "--- Valid ---" ++ noColor
+        print ast
         putStrLn valid
 
     main :: IO ()

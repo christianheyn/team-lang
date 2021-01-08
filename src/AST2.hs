@@ -8,6 +8,10 @@ module AST2 (
     , AST_NODE(..)
     , AstResult(..)
     , fromAST
+    , isAstValue
+    , isAstError
+    , isAstKnowenError
+
     , _string
     , string
     , _number
@@ -25,6 +29,7 @@ module AST2 (
     , keywordEither
 
     -- TYPES
+    , typeDefinition
     , typeSymbol
     , allTypeSymbols
     , ___templateType
@@ -39,6 +44,9 @@ module AST2 (
     , lambda
     , function
     , functionCall
+    , topLevel
+
+    , toAst
     ) where
 
 
@@ -96,7 +104,7 @@ module AST2 (
 
     qExact :: [AstFn] -> AstFn
     qExact []     chars = (AST_VALUE [], chars)
-    qExact (x:_) ""    = (AST_ERROR [], "")
+    qExact (x:_) ""     = (AST_ERROR [], "")
     qExact (c:cs) chars =
         if (isAstError ast)
         then (ast, rest)
@@ -557,26 +565,11 @@ module AST2 (
     ___functionType :: AstFn -- {T -> {T -> U} -> U}
     ___functionType = (wrappedAs AST_FunctionType) . withCurlyGroup ___arrow
 
-    -- isTypeDefinition :: AstFn
-    -- isTypeDefinition tokens =
-    --     if hasError
-    --     then (nodes, [])
-    --     else ([astResult], restTokens)
-    --     where (nodes, restTokens) = qExact [
-    --                                       qZeroOrMore [isTemplateType]
-    --                                     , isArrowTypes
-    --                                     ] tokens
-    --           hasError = hasAstError nodes
-    --           astResult = createAstNode AstTypeDefinition [] nodes
+    typeDefinition = (wrappedAs AST_TypeDefinition) . qExact [
+                          qZeroOrMore ___templateType
+                        , ___arrow
+                        ]
 
-    -- isTypeDefinitionWithoutTemplates :: AstFn
-    -- isTypeDefinitionWithoutTemplates tokens =
-    --     if hasError
-    --     then (nodes, [])
-    --     else ([astResult], restTokens)
-    --     where (nodes, restTokens) = isArrowTypes tokens
-    --           hasError = hasAstError nodes
-    --           astResult = createAstNode AstTypeDefinition [] nodes
 
     -- END TYPING ============================================================
 
@@ -588,15 +581,15 @@ module AST2 (
     _comment :: AstFn
     _comment = (combinedAs AST_Comment) . qExact [___sharp, __commentText]
 
-    _spaceEOF :: AstFn
-    _spaceEOF ""    = (AST_VALUE [], "")
-    _spaceEOF chars =
+    _space :: AstFn
+    _space "" = (AST_VALUE [], "")
+    _space chars =
         if L.length ns == 0
         then (AST_ERROR [], rest)
         else (singleAstNode AST_Space (Just ns) (AST_VALUE []), rest)
         where (ns, rest) = L.break (not . isSpace) chars
 
-    ignored = qJustAppear $ qZeroOrMore (qOr [_spaceEOF, _comment])
+    ignored = qJustAppear $ qZeroOrMore (qOr [_space, _comment])
     coma = qExact [qJustAppear $ qOptional ___Coma, ignored]
 
     -- FUNCTION ===============================================================
@@ -627,8 +620,8 @@ module AST2 (
         token $
             (wrappedAs AST_Lambda)
             . withCurlyGroup (qExact [
-            -- TODO: , qOptional typing
-              ___functionParameterList
+              qOptional typeDefinition
+            , ___functionParameterList
             , ignored
             , ___functionBody
             , ignored
@@ -640,8 +633,7 @@ module AST2 (
             (wrappedAs AST_Function)
             . withCurlyGroup (qExact [
               symbol
-            , ignored
-            -- TODO: , qOptional typing
+            , qOptional typeDefinition
             , ___functionParameterList
             , ignored
             , ___functionBody
@@ -650,18 +642,16 @@ module AST2 (
             -- TODO: , ignored
             ])
 
-    c :: Char
-    c = '3'
-
-
     fun :: AstFn
     fun =
         token $
             (wrappedAs AST_Function)
             . (qExact [
-                keywordFun
+                  keywordFun
+                , ignored
                 , symbol
-                -- TODO: , qOptional typing
+                , ignored
+                , qOptional typeDefinition
                 , ___functionParameterList
                 , ignored
                 , ___functionBody
@@ -726,3 +716,25 @@ module AST2 (
         -- , pi
         -- , e
         ]
+
+    _eof "" = (AST_VALUE [], "")
+    _eof chars = (AST_VALUE [], chars)
+
+    topLevel = qExact [
+          ignored
+        , qZeroOrMore $ qOr [
+              function
+            , funCurly
+            , lambda
+            ]
+        , ignored
+        , _eof
+        ]
+
+    toAst :: L.ByteString -> AST [AST_NODE]
+    toAst chars =
+        if rest == "~\n"
+        then ast
+        else (fst . unexpected) rest
+        where (ast, rest) = topLevel (chars <> fakeEnd)
+              fakeEnd = "\n~\n"

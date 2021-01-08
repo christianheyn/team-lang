@@ -84,6 +84,7 @@ module AST2.Types (
             | AST_EitherType         -- either Number String (T U)
             | AST_WrapType           -- A B C
             | AST_FunctionType       -- A -> B -> C D -> @F -> N
+            | AST_TypeDefinition     -- <T> <U> {T -> U} [T] -> [U]
 
         | AST_String             -- "text"
         | AST_Open               -- ( { [
