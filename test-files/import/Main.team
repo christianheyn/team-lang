@@ -30,8 +30,6 @@ project {team-lang @Strings -> Void (@args) (
 either Number String Boolean
 
 
-class LIST = Functor Show Eq
-
 class Functor <T> = {fmap <U> {T -> U} -> T -> U}
 
 {add2 (x) (+ 2 ?)}
@@ -41,7 +39,7 @@ var html = xml
         {(getItem)}
     </div>
 
-var htmlString = (show html)
+var html-string = (show html)
 isJust :: Maybe <T> -> Bool
 
 {isJust (m) 
@@ -50,3 +48,38 @@ isJust :: Maybe <T> -> Bool
         otherwise true)
 
     catch {(x) do (print x) x}}
+
+type Attr = (( String,  maybe String ));
+
+type XML = XML String [Attr] [either XML String];
+
+type Either <X> <Y> = Left X | Right Y;
+
+fun my-function [Attr] -> [XML] (attrs, children) (
+        XML "div" (++ attrs [
+                             (Attr "onClick" "jsFn()")
+                            ]
+                    ) children
+    )
+
+fun my-function [Attr] -> [XML] (attrs, children) xml
+    <div {attrs} onClick="jsFn()" readonly>
+        {"<!-- html kommentar -->"}
+        {children}
+    </div>
+
+var html = xml
+    <div>
+        <{myFunction} {myAttributes}>children</{myFunction}>
+    </div>
+
+(( String, Number ))
+
+var c Char = 'y';
+type String = [Char];
+type A = [ a: Number ] extends B
+type C = { "user": User, "id": maybe String } extends D
+
+var user (lens C -> User) = (focus "user");
+var user-name (lens C -> String) = (focus user "name");
+

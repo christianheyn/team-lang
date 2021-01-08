@@ -558,7 +558,6 @@ module AST2 (
             , ignored
             , ___functionBody
             , ignored
-            -- TODO: , qOptional catch
             ])
 
     funCurly :: AstFn
