@@ -75,6 +75,7 @@ module AST2.Types (
 
         | AST_Symbol         -- variable-name
         | AST_ImportedSymbol -- lib.fn
+        | AST_PropSymbol     -- abc-123:
 
         | AST_TypeSymbol             -- T
             | AST_ImportedTypeSymbol -- lib.T
@@ -85,7 +86,9 @@ module AST2.Types (
             | AST_WrapType           -- A B C
             | AST_FunctionType       -- A -> B -> C D -> @F -> N
             | AST_TypeDefinition     -- <T> <U> {T -> U} [T] -> [U]
+            | AST_PropListType       -- [a: Number, b: Number]
 
+        | AST_PropListKeyValue   -- a: N, a: 2
         | AST_String             -- "text"
         | AST_Char               -- 'c'
         | AST_Open               -- ( { [

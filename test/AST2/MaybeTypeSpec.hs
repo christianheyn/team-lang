@@ -62,7 +62,6 @@ module AST2.MaybeTypeSpec where
                             ]
                             ,"xxx"
                         )
-
                 actual `shouldBe` expected
 
             it "(maybe lib.T) xxx" $ do
@@ -78,7 +77,6 @@ module AST2.MaybeTypeSpec where
                             ]
                             ,"xxx"
                         )
-
                 actual `shouldBe` expected
 
             it "( maybe lib.T ) xxx" $ do
@@ -94,7 +92,6 @@ module AST2.MaybeTypeSpec where
                             ]
                             ,"xxx"
                         )
-
                 actual `shouldBe` expected
 
             it "maybe A B C xxx" $ do
@@ -107,7 +104,6 @@ module AST2.MaybeTypeSpec where
                             ]
                             ,"B C xxx"
                         )
-
                 actual `shouldBe` expected
 
             it "maybe (A B C) xxx" $ do
@@ -124,5 +120,23 @@ module AST2.MaybeTypeSpec where
                             ]
                             ,"xxx"
                         )
+                actual `shouldBe` expected
 
+            it "maybe [  key-1: String  ] xxx" $ do
+                let actual = ___maybeType "maybe [  key-1: String  ] xxx"
+                    expected = (
+                            AST_VALUE [
+                                AST_NODE {_astNodeType = AST_MaybeType, _astValue = Nothing, _astChildren = AST_VALUE [
+                                    AST_NODE {_astNodeType = AST_PropListType, _astValue = Nothing, _astChildren = AST_VALUE [
+                                        AST_NODE {_astNodeType = AST_PropListKeyValue, _astValue = Nothing, _astChildren = AST_VALUE [
+                                            AST_NODE {_astNodeType = AST_PropSymbol, _astValue = Just "key-1:", _astChildren = AST_VALUE []},
+                                            AST_NODE {_astNodeType = AST_TypeDefinition, _astValue = Nothing, _astChildren = AST_VALUE [
+                                                AST_NODE {_astNodeType = AST_TypeSymbol, _astValue = Just "String", _astChildren = AST_VALUE []}
+                                            ]}
+                                        ]}
+                                    ]}
+                                ]}
+                            ]
+                            ,"xxx"
+                        )
                 actual `shouldBe` expected

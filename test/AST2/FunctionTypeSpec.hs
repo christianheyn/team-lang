@@ -27,7 +27,7 @@ module AST2.FunctionTypeSpec where
                                     AST_NODE {_astNodeType = AST_TypeSymbol, _astValue = Just "N", _astChildren = AST_VALUE []}
                                 ]}
                             ]
-                            ," xxx"
+                            ,"xxx"
                         )
                 actual `shouldBe` expected
 
@@ -52,7 +52,7 @@ module AST2.FunctionTypeSpec where
                                     AST_NODE {_astNodeType = AST_TypeSymbol, _astValue = Just "C", _astChildren = AST_VALUE []}
                                 ]}
                             ]
-                            ," xxx"
+                            ,"xxx"
                         )
                 actual `shouldBe` expected
 
@@ -76,7 +76,7 @@ module AST2.FunctionTypeSpec where
                                     AST_NODE {_astNodeType = AST_TypeSymbol, _astValue = Just "N", _astChildren = AST_VALUE []}
                                 ]}
                             ]
-                            ," xxx"
+                            ,"xxx"
                         )
                 actual `shouldBe` expected
 

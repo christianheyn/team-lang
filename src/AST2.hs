@@ -39,6 +39,7 @@ module AST2 (
     , ___eitherType
     , ___wrapType
     , ___functionType
+    , ___propListType
 
     , _comment
     , funCurly
@@ -195,6 +196,9 @@ module AST2 (
     ___dot :: AstFn
     ___dot = ___signAs AST_Ignore '.'
 
+    ___dotdot :: AstFn
+    ___dotdot = ___signAs AST_Ignore ':'
+
     ___minus :: AstFn
     ___minus = ___signAs AST_Ignore '-'
 
@@ -217,12 +221,12 @@ module AST2 (
 
     -- []
     ___openSquare :: AstFn
-    ___openSquare = ___signAs AST_Open '{'
+    ___openSquare = ___signAs AST_Open '['
 
     ___closeSquare :: AstFn
-    ___closeSquare = ___signAs AST_Close '}'
+    ___closeSquare = ___signAs AST_Close ']'
 
-    -- []
+    -- <>
     ___openTag :: AstFn
     ___openTag = ___signAs AST_Open '<'
 
@@ -264,6 +268,18 @@ module AST2 (
             ++ [
               ignored
             , qJustAppear ___closeCurly
+            , ignored
+            ])
+
+    withSquareGroup check = qExact ([
+              qJustAppear ___openSquare
+            , ignored
+            ]
+            ++ [check]
+            ++ [
+              ignored
+            , qJustAppear ___closeSquare
+            , ignored
             ])
 
     -- NUMBERS =============================================================
@@ -371,9 +387,9 @@ module AST2 (
              then unexpected chars
              else (singleAstNode AST_Symbol (Just xs) (AST_VALUE []), rest)
         where (xs, rest) = L.break (notAllowed) chars
-              notAllowed c = c `L.elem` (L.pack ("@#(){}[]\" \n." ++ ['A'..'Z']))
+              notAllowed c = c `L.elem` (L.pack ("@#(){}[]:\" \n." ++ ['A'..'Z']))
               wrongStart = (L.head chars) `L.elem` notAllowedStart
-              notAllowedStart = L.pack ("@#(){}[]\" \n." ++ ['A'..'Z'] ++ ['0'..'9'])
+              notAllowedStart = L.pack ("@#(){}[]:\" \n." ++ ['A'..'Z'] ++ ['0'..'9'])
 
     symbol :: AstFn
     symbol = token $ ___symbol
@@ -469,7 +485,7 @@ module AST2 (
                     , ___eitherType
                     --TODO: , ___functionTypeDef
                     --TODO: , ___listType
-                    --TODO: , ___propListType
+                    , ___propListType
                     , allTypeSymbols
                     , ___wrapType
                     ]
@@ -489,7 +505,7 @@ module AST2 (
                       ___maybeType
                     --TODO: , ___functionTypeDef
                     --TODO: , ___listType
-                    --TODO: , ___propListType
+                    , ___propListType
                     , allTypeSymbols
                     , ___wrapType
                     ]
@@ -510,7 +526,7 @@ module AST2 (
                     , ___wrapType
                     , ___functionType
                     --TODO: , ___listType
-                    --TODO: , ___propListType
+                    , ___propListType
                     ]
 
     ___restType :: AstFn
@@ -524,11 +540,21 @@ module AST2 (
                 , ___eitherType
                 --TODO: , ___functionTypeDef
                 --TODO: , ___listType
-                --TODO: , ___propListType
+                , ___propListType
                 , ___wrapType
                 , allTypeSymbols
                 , ___functionType
                 ]
+
+    ___propListType = -- [a: Number]
+        (wrappedAs AST_PropListType) . withSquareGroup (qOneOrMore propValuePair)
+        where propValuePair = (wrappedAs AST_PropListKeyValue) . qExact [
+                                  prop
+                                , typeDefinitionNoTemplate
+                                , ignored
+                                , coma
+                                ]
+              prop = (combinedAs AST_PropSymbol) . qExact [___symbol, ___dotdot, ignored]
 
     ___arrow :: AstFn -- T -> @U -> U, @T -> T
     ___arrow = qOr [
@@ -565,12 +591,11 @@ module AST2 (
                             , ___eitherType
                             --TODO: , ___functionTypeDef
                             --TODO: , ___listType
-                            --TODO: , ___propListType
+                            , ___propListType
                             , ___wrapType
                             , allTypeSymbols
                             , ___functionType
                             ]
-
 
     ___functionType :: AstFn -- {T -> {T -> U} -> U}
     ___functionType = (wrappedAs AST_FunctionType) . withCurlyGroup ___arrow
@@ -579,6 +604,8 @@ module AST2 (
                           qZeroOrMore ___templateType
                         , ___arrow
                         ]
+
+    typeDefinitionNoTemplate = (wrappedAs AST_TypeDefinition) . ___arrow
 
 
     -- END TYPING ============================================================
