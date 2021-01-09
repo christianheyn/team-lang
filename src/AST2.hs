@@ -46,6 +46,8 @@ module AST2 (
     , lambda
     , function
     , functionCall
+    , ___propList
+    , ___json
     , topLevel
 
     , toAst
@@ -610,6 +612,27 @@ module AST2 (
 
     -- END TYPING ============================================================
 
+
+    -- PROPLIST
+    ___propList = -- [a: 3]
+        (wrappedAs AST_PropList) . withSquareGroup (qOneOrMore propValuePair)
+        where propValuePair = (wrappedAs AST_PropListKeyValue) . qExact [
+                                  prop
+                                , all
+                                , ignored
+                                , coma
+                                ]
+              prop = (combinedAs AST_PropSymbol) . qExact [___symbol, ___dotdot, ignored]
+              all = qOr [
+                          functionCall
+                        , primitive
+                        , lambda
+                        , ___propList
+                        , allTypeSymbols
+                        -- , ifElseThan
+                        -- , switch ...
+                        ]
+
     __commentText :: AstFn
     __commentText chars =
         (singleAstNode AST_Comment (Just ns) (AST_VALUE []), rest)
@@ -650,6 +673,9 @@ module AST2 (
                           -- TODO: , ifThenElse
                           -- TODO: , whenThen
                           , allSymbols
+                          , allTypeSymbols
+                          , ___propList
+                          , ___json
                           ]
 
     lambda :: AstFn
@@ -668,7 +694,8 @@ module AST2 (
     funCurly =
         token $
             (wrappedAs AST_Function)
-            . withCurlyGroup (qExact [
+            . withCurlyGroup
+            (qExact [
               symbol
             , qOptional typeDefinition
             , ___functionParameterList
@@ -704,17 +731,41 @@ module AST2 (
     functionCall = token $
             (wrappedAs AST_FunctionCall)
             . withRoundGroup (qExact [
-                symbol
+                qOr [symbol, allTypeSymbols]
               , coma
               , qZeroOrMore $ qExact [x, coma]
             ])
         where x = qOr [
                       primitive
                     , allSymbols
+                    , allTypeSymbols -- (Just a)
                     , lambda
                     , functionCall
                     ]
 
+    -- JSON ===============================================================
+
+    ___json = -- {}
+        (wrappedAs AST_Json) . withCurlyGroup (qOneOrMore propValuePair)
+        where propValuePair = (wrappedAs AST_JsonKeyValue) . qExact [
+                                  string
+                                , ignored
+                                , qJustAppear ___dotdot
+                                , ignored
+                                , all
+                                , ignored
+                                , coma
+                                ]
+              all = qOr [
+                          functionCall
+                        , string
+                        , ___realNumber
+                        , ___integerNumber
+                        , ___json
+                        -- TODO: , jsonArray
+                        -- TODO: , ifElseThan
+                        -- TODO: , switch ...
+                        ]
 
     token check = qExact [
           check

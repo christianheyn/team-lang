@@ -28,7 +28,7 @@ module Main where
             valid = if isAstError ast || isAstKnowenError ast
                     then red ++ "--- Error ---" ++ noColor
                     else green ++ "--- Valid ---" ++ noColor
-        print ast
+        -- print ast
         putStrLn valid
 
     main :: IO ()

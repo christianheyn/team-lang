@@ -89,6 +89,9 @@ module AST2.Types (
             | AST_PropListType       -- [a: Number, b: Number]
 
         | AST_PropListKeyValue   -- a: N, a: 2
+        | AST_PropList           -- [ a: N, a: 2]
+        | AST_JsonKeyValue       -- "key": value
+        | AST_Json               -- { "key1": value "key2": value}
         | AST_String             -- "text"
         | AST_Char               -- 'c'
         | AST_Open               -- ( { [
