@@ -49,10 +49,10 @@ module AST2 (
     , ___propList
     , ___json
     , topLevel
+    , ___ifThenElse
 
     , toAst
     ) where
-
 
     import qualified Data.ByteString.Lazy.Char8 as L
     import Data.List (find, null, or, break)
@@ -411,8 +411,8 @@ module AST2 (
 
     -- KEYWORDS  ===============================================================
 
-    ___keyword :: L.ByteString -> AstFn
-    ___keyword k chars =
+    ___keywordJustAppear :: L.ByteString -> AstFn
+    ___keywordJustAppear k chars =
         if isAstError ast
         then (ast, rest)
         else if n == Just k
@@ -421,33 +421,49 @@ module AST2 (
         where (ast, rest) = symbol chars
               n = _astValue $ head $ fromAST ast
 
-    keywordIf         = ___keyword "if"
-    keywordThen       = ___keyword "then"
-    keywordElse       = ___keyword "else"
-    keywordWhen       = ___keyword "when"
-    keywordSwitch     = ___keyword "switch"
-    keywordOtherwise  = ___keyword "otherwise"
-    keywordMaybe      = ___keyword "maybe"
-    keywordEither     = ___keyword "either"
-    keywordVar        = ___keyword "var"
-    keywordType       = ___keyword "type"
-    keywordLet        = ___keyword "let"
-    keywordDo         = ___keyword "do"
-    keywordCatch      = ___keyword "catch"
-    keywordImport     = ___keyword "import"
-    keywordAs         = ___keyword "as"
-    keywordFrom       = ___keyword "from"
-    keywordExport     = ___keyword "export"
-    keywordClass      = ___keyword "class"
-    keywordInstance   = ___keyword "instance"
-    keywordLens       = ___keyword "lens"
-    keywordFocus      = ___keyword "focus"
-    keywordXml        = ___keyword "xml"
-    keywordArrowLeft  = ___keyword "->"
-    keywordConcurrent = ___keyword "concurrent"
-    keywordParallel   = ___keyword "parallel"
-    keywordTest       = ___keyword "test"
-    keywordFun        = ___keyword "fun"
+    ___keyword :: L.ByteString -> AstFn
+    ___keyword k chars =
+        if isAstError ast
+        then (ast, rest)
+        else if n == Just k
+             then (singleAstNode AST_Ignore n (AST_VALUE []), rest)
+             else unexpected chars
+        where (ast, rest) = symbol chars
+              n = _astValue $ head $ fromAST ast
+
+    keywordIf         = ___keywordJustAppear "if"
+    keywordThen       = ___keywordJustAppear "then"
+    keywordElse       = ___keywordJustAppear "else"
+    keywordWhen       = ___keywordJustAppear "when"
+    keywordSwitch     = ___keywordJustAppear "switch"
+    keywordOtherwise  = ___keywordJustAppear "otherwise"
+    keywordMaybe      = ___keywordJustAppear "maybe"
+    keywordEither     = ___keywordJustAppear "either"
+    keywordVar        = ___keywordJustAppear "var"
+    keywordType       = ___keywordJustAppear "type"
+    keywordLet        = ___keywordJustAppear "let"
+    keywordDo         = ___keywordJustAppear "do"
+    keywordCatch      = ___keywordJustAppear "catch"
+    keywordImport     = ___keywordJustAppear "import"
+    keywordAs         = ___keywordJustAppear "as"
+    keywordFrom       = ___keywordJustAppear "from"
+    keywordExport     = ___keywordJustAppear "export"
+    keywordClass      = ___keywordJustAppear "class"
+    keywordInstance   = ___keywordJustAppear "instance"
+    keywordLens       = ___keywordJustAppear "lens"
+    keywordFocus      = ___keywordJustAppear "focus"
+    keywordXml        = ___keywordJustAppear "xml"
+    keywordArrowLeft  = ___keywordJustAppear "->"
+    keywordConcurrent = ___keywordJustAppear "concurrent"
+    keywordParallel   = ___keywordJustAppear "parallel"
+    keywordTest       = ___keywordJustAppear "test"
+    keywordFun        = ___keywordJustAppear "fun"
+
+    keywordTrue       = ___keyword "true"
+    keywordFalse      = ___keyword "false"
+
+    keywordKeyword    = ___keywordJustAppear "keyword"
+    keywordOutput     = ___keywordJustAppear "output"
 
     -- TYPING ==================================================================
 
@@ -750,10 +766,14 @@ module AST2 (
                     , ___ifThenElse
                     ]
 
+    -- BOOL ===============================================================
+    ___bool = (combinedAs AST_Bool) . (qOr [qExact [keywordTrue, ignored], qExact [keywordFalse, ignored]])
+
+
     -- JSON ===============================================================
 
     ___json = -- {}
-        (wrappedAs AST_Json) . withCurlyGroup (qOneOrMore propValuePair)
+        (wrappedAs AST_Json) . withCurlyGroup (qZeroOrMore propValuePair)
         where propValuePair = (wrappedAs AST_JsonKeyValue) . qExact [
                                   string
                                 , ignored
@@ -769,8 +789,10 @@ module AST2 (
                         , ___realNumber
                         , ___integerNumber
                         , ___json
+                        , ___bool
                         -- TODO: , jsonArray
                         , ___ifThenElse
+                        , allSymbols
                         -- TODO: , switch ...
                         ]
 
@@ -778,7 +800,7 @@ module AST2 (
     ___ifThenElse = (wrappedAs AST_IfStatement) . withOptionalRoundGroup (qExact [
           qJustAppear keywordIf
         , ignored
-        , qOr [functionCall, allSymbols]
+        , condition
         , ignored
         , qJustAppear keywordThen
         , ignored
@@ -789,9 +811,15 @@ module AST2 (
         , all
         , ignored
         ])
-        where all = qOr [
+        where condition = qOr [
+                  functionCall
+                , ___bool
+                , allSymbols
+                ]
+              all = qOr [
                   ___ifThenElse
                 , functionCall
+                , primitive
                 , allSymbols
                 ]
 
@@ -827,6 +855,7 @@ module AST2 (
         , number
         , string
         , ___char
+        , ___bool
         -- , true
         -- , false
         -- , pi

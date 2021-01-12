@@ -96,6 +96,7 @@ module AST2.Types (
         | AST_Json               -- { "key1": value "key2": value}
         | AST_String             -- "text"
         | AST_Char               -- 'c'
+        | AST_Bool
         | AST_Open               -- ( { [
         | AST_Close              -- ] } )
         | AST_At                 -- @
