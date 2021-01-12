@@ -77,6 +77,8 @@ module AST2.Types (
         | AST_ImportedSymbol -- lib.fn
         | AST_PropSymbol     -- abc-123:
 
+        | AST_IfStatement    -- if a then b else c
+
         | AST_TypeSymbol             -- T
             | AST_ImportedTypeSymbol -- lib.T
             | AST_TemplateType       -- <T>

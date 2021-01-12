@@ -639,7 +639,7 @@ module AST2 (
                         , lambda
                         , ___propList
                         , allTypeSymbols
-                        -- , ifElseThan
+                        , ___ifThenElse
                         -- , switch ...
                         ]
 
@@ -666,13 +666,9 @@ module AST2 (
 
     ___functionParameterList :: AstFn
     ___functionParameterList =
-        (wrappedAs AST_FunctionParameterList) . qExact [
-              qJustAppear ___openRound
-            , ignored
-            , qZeroOrMore $ qExact [symbol, coma]
-            , ignored
-            , qJustAppear ___closeRound
-            ]
+        (wrappedAs AST_FunctionParameterList) . withRoundGroup (qExact [
+            qZeroOrMore $ qExact [symbol, coma]
+            ])
 
     ___functionBody :: AstFn
     ___functionBody = (wrappedAs AST_FunctionBody) . qOr [
@@ -680,7 +676,7 @@ module AST2 (
                           , functionCall
                           , lambda
                           -- TODO: , switch
-                          -- TODO: , ifThenElse
+                          , ___ifThenElse
                           -- TODO: , whenThen
                           , allSymbols
                           , allTypeSymbols
@@ -751,6 +747,7 @@ module AST2 (
                     , allTypeSymbols -- (Just a)
                     , lambda
                     , functionCall
+                    , ___ifThenElse
                     ]
 
     -- JSON ===============================================================
@@ -773,9 +770,30 @@ module AST2 (
                         , ___integerNumber
                         , ___json
                         -- TODO: , jsonArray
-                        -- TODO: , ifElseThan
+                        , ___ifThenElse
                         -- TODO: , switch ...
                         ]
+
+    ___ifThenElse :: AstFn
+    ___ifThenElse = (wrappedAs AST_IfStatement) . withOptionalRoundGroup (qExact [
+          qJustAppear keywordIf
+        , ignored
+        , qOr [functionCall, allSymbols]
+        , ignored
+        , qJustAppear keywordThen
+        , ignored
+        , all
+        , ignored
+        , qJustAppear keywordElse
+        , ignored
+        , all
+        , ignored
+        ])
+        where all = qOr [
+                  ___ifThenElse
+                , functionCall
+                , allSymbols
+                ]
 
     token check = qExact [
           check
