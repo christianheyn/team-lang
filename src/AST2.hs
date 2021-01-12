@@ -247,6 +247,9 @@ module AST2 (
     ___StringStart :: AstFn
     ___StringStart = ___signAs AST_String '"'
 
+    ___EqualSign :: AstFn
+    ___EqualSign = ___signAs AST_Ignore '='
+
     withRoundGroup :: AstFn -> AstFn
     withRoundGroup check = qExact ([
               qJustAppear ___openRound
@@ -475,6 +478,13 @@ module AST2 (
           qJustAppear ___openTag
         , ignored
         , typeSymbol
+        , ignored
+        , qOptional $ qExact [
+                              qJustAppear ___EqualSign
+                            , ignored
+                            , qOneOrMore $ qExact [allTypeSymbols, coma]
+                            ]
+        , ignored
         , qJustAppear ___closeTag
         , ignored
         ]
