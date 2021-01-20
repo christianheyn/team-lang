@@ -1,3 +1,11 @@
 export util    {fa Void -> Bool () true}
 export feature {fb Void -> Void () void}
 export feature {fc Void -> Void () void}
+
+export feature 
+    version 1.2.3-beta
+    priority 3
+    fun f-1 Void -> Number () (+ 3 4 7 11 13)
+        catch (err) 7
+
+var a Number = 3

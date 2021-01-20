@@ -200,6 +200,14 @@ test {
 Number -> Complex -> Complex
 # comment
 
-binary 2`011101
+binary 2|011101
 octal 8`0127127277
 hexa  16`12fda9
+
+type T = oneof Number (Maybe String)
+
+type Either <A> <B> = Left A | Right B
+
+switch pattern tuple a b 
+    (tuple (Right 2) (Left "text")) => 
+    ({ (Right 2), (Left "") })

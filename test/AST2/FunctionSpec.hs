@@ -76,7 +76,7 @@ module AST2.FunctionSpec where
                                     AST_NODE {_astNodeType = AST_Function, _astValue = Nothing, _astChildren = AST_VALUE [
                                         AST_NODE {_astNodeType = AST_Symbol, _astValue = Just "f", _astChildren = AST_VALUE []},
                                         AST_NODE {_astNodeType = AST_FunctionParameterList, _astValue = Nothing, _astChildren = AST_VALUE [
-                                            AST_NODE {_astNodeType = AST_Symbol, _astValue = Just "a,", _astChildren = AST_VALUE []},
+                                            AST_NODE {_astNodeType = AST_Symbol, _astValue = Just "a", _astChildren = AST_VALUE []},
                                             AST_NODE {_astNodeType = AST_Symbol, _astValue = Just "b", _astChildren = AST_VALUE []}
                                         ]},
                                         AST_NODE {_astNodeType = AST_FunctionBody, _astValue = Nothing, _astChildren = AST_VALUE [

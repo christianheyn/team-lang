@@ -2,7 +2,7 @@ global alias tdd "./modules/tdd/"
 global alias utils "./helper/"
 
 import (fa fb fc) from "./FeatureA.team"
-import as _B from "./FeatureB.team"
+import "./FeatureB.team" as b
 
 feature {run () (print "RUN")}
 
@@ -10,7 +10,7 @@ instance Functor T {
     {fmap (f t) (f t)}
 }
 
-{askForTask () (do 
+{askForTask () (do
     (print "What Task?")
     (let input = (readLine)
         (print input))
@@ -34,7 +34,7 @@ class Functor <T> = {fmap <U> {T -> U} -> T -> U}
 
 {add2 (x) (+ 2 ?)}
 
-var html = xml 
+var html = xml
     <div key="value" key2={(getValue)}>
         {(getItem)}
     </div>
@@ -42,7 +42,7 @@ var html = xml
 var html-string = (show html)
 isJust :: Maybe <T> -> Bool
 
-{isJust (m) 
+{isJust (m)
     (switch m
         void then false
         otherwise true)

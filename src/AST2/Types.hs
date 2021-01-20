@@ -111,6 +111,10 @@ module AST2.Types (
         |   AST_FunctionBody
         |   AST_FunctionCall
 
+        | AST_ImportFrom
+        | AST_ImportList
+        | AST_ImportAs
+
         | AST_Syntax_Error
         | AST_Ignore
         | AST_Combination

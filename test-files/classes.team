@@ -1,0 +1,15 @@
+class ADDITION <A> <B> {
+    + :: A -> @B -> A
+}
+
+instance ADDITION N N {
+    fun + (a @b) (:+ a ...b)
+}
+
+instance ADDITION N Q {
+    fun + (a @b) (:+ a ...b)
+}
+
+instance ADDITION Number Complex {
+    fun + (n @c) (:+ a ...b)
+}

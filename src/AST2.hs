@@ -51,6 +51,8 @@ module AST2 (
     , topLevel
     , ___ifThenElse
 
+    , _import
+
     , toAst
     ) where
 
@@ -392,9 +394,9 @@ module AST2 (
              then unexpected chars
              else (singleAstNode AST_Symbol (Just xs) (AST_VALUE []), rest)
         where (xs, rest) = L.break (notAllowed) chars
-              notAllowed c = c `L.elem` (L.pack ("@#(){}[]:\" \n." ++ ['A'..'Z']))
+              notAllowed c = c `L.elem` (L.pack ("@#(){}[]:\" \n.,;" ++ ['A'..'Z']))
               wrongStart = (L.head chars) `L.elem` notAllowedStart
-              notAllowedStart = L.pack ("@#(){}[]:\" \n." ++ ['A'..'Z'] ++ ['0'..'9'])
+              notAllowedStart = L.pack ("@#(){}[]:\" \n.,;" ++ ['A'..'Z'] ++ ['0'..'9'])
 
     symbol :: AstFn
     symbol = token $ ___symbol
@@ -511,7 +513,7 @@ module AST2 (
         where all = qOr [
                       ___maybeType
                     , ___eitherType
-                    --TODO: , ___functionTypeDef
+                    , ___functionType
                     --TODO: , ___listType
                     , ___propListType
                     , allTypeSymbols
@@ -531,7 +533,7 @@ module AST2 (
                             , ignored ])
         where all = qOr [
                       ___maybeType
-                    --TODO: , ___functionTypeDef
+                    , ___functionType
                     --TODO: , ___listType
                     , ___propListType
                     , allTypeSymbols
@@ -566,7 +568,7 @@ module AST2 (
         where all = qOr [
                   ___maybeType
                 , ___eitherType
-                --TODO: , ___functionTypeDef
+                , ___functionType
                 --TODO: , ___listType
                 , ___propListType
                 , ___wrapType
@@ -617,7 +619,7 @@ module AST2 (
         where allTypes = qOr [
                               ___maybeType
                             , ___eitherType
-                            --TODO: , ___functionTypeDef
+                            , ___functionType
                             --TODO: , ___listType
                             , ___propListType
                             , ___wrapType
@@ -677,6 +679,7 @@ module AST2 (
 
     ignored = qJustAppear $ qZeroOrMore (qOr [_space, _comment])
     coma = qExact [qJustAppear $ qOptional ___Coma, ignored]
+    semicolon = qExact [qJustAppear $ qOptional ___Semicolon, ignored]
 
     -- FUNCTION ===============================================================
 
@@ -796,6 +799,41 @@ module AST2 (
                         -- TODO: , switch ...
                         ]
 
+
+    -- IMPORT ===============================================================
+
+    __import = (wrappedAs AST_ImportFrom) . (qExact [
+              keywordImport
+            , ignored
+            , importList
+            , ignored
+            , keywordFrom
+            , ignored
+            , string
+            , ignored
+            , semicolon])
+        where importList =
+                (wrappedAs AST_ImportList) . (withRoundGroup (qOneOrMore (qExact [___symbol, coma, ignored])))
+
+    __importAs = (wrappedAs AST_ImportAs) . (qExact [
+              keywordImport
+            , ignored
+            , string
+            , ignored
+            , keywordAs
+            , ignored
+            , ___symbol
+            , ignored
+            , semicolon])
+
+    _import = qOr [__importAs, __import]
+
+    -- keywordImport     = ___keywordJustAppear "import"
+    -- keywordAs         = ___keywordJustAppear "as"
+    -- keywordFrom       = ___keywordJustAppear "from"
+    -- import (fa fb fc) from "./FeatureA.team"
+    -- import "./FeatureB.team" as b
+
     ___ifThenElse :: AstFn
     ___ifThenElse = (wrappedAs AST_IfStatement) . withOptionalRoundGroup (qExact [
           qJustAppear keywordIf
@@ -856,8 +894,6 @@ module AST2 (
         , string
         , ___char
         , ___bool
-        -- , true
-        -- , false
         -- , pi
         -- , e
         ]
@@ -868,10 +904,16 @@ module AST2 (
     topLevel = qExact [
           ignored
         , qZeroOrMore $ qOr [
-              function
-            , funCurly
-            , lambda
+              _import
             ]
+        , ignored
+        , qZeroOrMore $ qExact [
+              qOr [
+                  function
+                , funCurly
+                ]
+            , semicolon
+          ]
         , ignored
         ]
 
